@@ -11,7 +11,7 @@ usage() {
 
 install_vault() {
   local VAULT_VERSION=$1
-  local VAULT_URL="https://repo1.uhc.com:443/artifactory/hashicorp-releases-cache/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip"
+  local VAULT_URL="https://repo1.xyz.com:443/artifactory/hashicorp-releases-cache/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip"
   echo "Downloading Vault version $VAULT_VERSION..."
   curl -O $VAULT_URL
 
@@ -66,7 +66,7 @@ EOF'
   sudo bash -c 'cat > /etc/systemd/system/vault.service <<EOF
 [Unit]
 Description="HashiCorp Vault - A tool for managing secrets"
-Documentation=https://github.com/optum-financial/vpay-vault
+Documentation=https://github.com/xyz
 Requires=network-online.target
 After=network-online.target
 ConditionFileNotEmpty=/etc/vault.d/vault.hcl

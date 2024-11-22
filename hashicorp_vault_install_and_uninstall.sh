@@ -1,7 +1,43 @@
-/__w/_temp/8d0d015c-c209-4b73-b279-09a4c3661cd4.sh: line 15: syntax error: unexpected "("
-Here is SECRET_PATH: roletest/secret/
-Here is SECRET_KEY: test_key
-Here is SECRET_VALUE: test_pass
-Here is GITHUB_USER: cboya1_uhg
-Here is MOUNT_PATH: roletest
-Error: Process completed with exit code 2.
+- name: Validate Vault path and check permissions
+        id: validate_path
+        run: |
+          SECRET_PATH="${{ inputs.secret_path }}"
+          SECRET_KEY="${{ inputs.secret_key }}"
+          SECRET_VALUE="${{ inputs.secret_value }}"
+          GITHUB_USER="${{ github.actor }}"
+          MOUNT_PATH=$(echo "$SECRET_PATH" | cut -d'/' -f1)
+
+          # Define valid Vault mounts
+          VALID_MOUNTS=("devops" "DBA" "engineering" "secret" "roletest")
+          if ! printf '%s\n' "${VALID_MOUNTS[@]}" | grep -Fxq "$MOUNT_PATH"; then
+              echo "Invalid Vault mount path. Allowed mounts are: ${VALID_MOUNTS[*]}"
+              exit 1
+          fi
+          echo "Vault mount path $MOUNT_PATH is valid."
+
+          # Fetch user's teams
+          TEAMS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                  "https://api.github.com/users/$GITHUB_USER/teams" | jq -r '.[].slug') || {
+              echo "Failed to fetch user teams or parse JSON response."
+              exit 1
+          }
+          echo "Teams for user $GITHUB_USER: $TEAMS"
+
+          # Determine allowed paths based on team membership
+          if echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_DEVOPS"; then
+              ALLOWED_PATHS=("devops" "DBA" "engineering" "secret" "roletest")
+          elif echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_DEVLEADS"; then
+              ALLOWED_PATHS=("DBA")
+          elif echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_ENGINEERING"; then
+              ALLOWED_PATHS=("engineering" "secret")
+          else
+              echo "User $GITHUB_USER is not in a recognized team. Access denied."
+              exit 1
+          fi
+
+          # Check if the user is authorized for the specified path
+          if ! printf '%s\n' "${ALLOWED_PATHS[@]}" | grep -Fxq "$MOUNT_PATH"; then
+              echo "User $GITHUB_USER is not allowed to write to mount path: $MOUNT_PATH"
+              exit 1
+          fi
+          echo "User $GITHUB_USER is authorized to write to the path: $MOUNT_PATH"

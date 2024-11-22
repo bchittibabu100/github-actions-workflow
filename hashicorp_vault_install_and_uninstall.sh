@@ -7,10 +7,13 @@
           GITHUB_USER="${{ github.actor }}"
           MOUNT_PATH=$(echo "$SECRET_PATH" | cut -d'/' -f1)
 
-          # Define valid Vault mounts
-          VALID_MOUNTS=("devops" "DBA" "engineering" "secret" "roletest")
-          if ! printf '%s\n' "${VALID_MOUNTS[@]}" | grep -Fxq "$MOUNT_PATH"; then
-              echo "Invalid Vault mount path. Allowed mounts are: ${VALID_MOUNTS[*]}"
+          # Define valid Vault mounts (as a string for POSIX compatibility)
+          VALID_MOUNTS="devops DBA engineering secret roletest"
+          echo "Valid mounts: $VALID_MOUNTS"
+
+          # Check if the mount path is valid
+          if ! echo "$VALID_MOUNTS" | grep -qw "$MOUNT_PATH"; then
+              echo "Invalid Vault mount path. Allowed mounts are: $VALID_MOUNTS"
               exit 1
           fi
           echo "Vault mount path $MOUNT_PATH is valid."
@@ -24,19 +27,20 @@
           echo "Teams for user $GITHUB_USER: $TEAMS"
 
           # Determine allowed paths based on team membership
+          ALLOWED_PATHS=""
           if echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_DEVOPS"; then
-              ALLOWED_PATHS=("devops" "DBA" "engineering" "secret" "roletest")
+              ALLOWED_PATHS="devops DBA engineering secret roletest"
           elif echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_DEVLEADS"; then
-              ALLOWED_PATHS=("DBA")
+              ALLOWED_PATHS="DBA"
           elif echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_ENGINEERING"; then
-              ALLOWED_PATHS=("engineering" "secret")
+              ALLOWED_PATHS="engineering secret"
           else
               echo "User $GITHUB_USER is not in a recognized team. Access denied."
               exit 1
           fi
 
           # Check if the user is authorized for the specified path
-          if ! printf '%s\n' "${ALLOWED_PATHS[@]}" | grep -Fxq "$MOUNT_PATH"; then
+          if ! echo "$ALLOWED_PATHS" | grep -qw "$MOUNT_PATH"; then
               echo "User $GITHUB_USER is not allowed to write to mount path: $MOUNT_PATH"
               exit 1
           fi

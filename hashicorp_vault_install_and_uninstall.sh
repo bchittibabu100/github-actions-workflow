@@ -1,72 +1,94 @@
-name: Insert Secret into Vault
+Your GitHub Actions workflow appears to be a well-structured approach for inserting secrets into Vault. However, there are a few enhancements and corrections you could consider:
 
-on:
-  workflow_call:
-    inputs:
-      secret_key:
-        description: 'Secret key'
-        required: true
-        type: string
-      secret_value:
-        description: 'Secret value'
-        required: true
-        type: string
-      secret_path:
-        description: 'Full Vault path (e.g., DBA/<env>/<app-name>/secretname/ or engineering/<env>/<app-name>/secretname/)'
-        required: true
-        type: string
+Suggestions:
 
-jobs:
-  insert_secret:
-    runs-on: 
-      group: test-runner-group
-    steps:
-      - name: Set Vault Environment Variables
-        run: |
-          echo "VAULT_ADDR=${{ vars.VPAY_VAULT_VM_URL }}" >> $GITHUB_ENV
-          echo "VAULT_TOKEN=${{ secrets.VPAY_VAULT_VM_TOKEN }}" >> $GITHUB_ENV
+1. Dynamic Array in Bash: The way you're checking VALID_MOUNTS and ALLOWED_PATHS uses Bash's [[ ... =~ ... ]], which doesn’t work as intended with arrays. Use a loop or grep for better accuracy.
 
-      - name: Validate Vault path and check permissions
-        id: validate_path
-        run: |
-          SECRET_PATH="${{ inputs.secret_path }}"
-          SECRET_KEY="${{ inputs.secret_key }}"
-          SECRET_VALUE="${{ inputs.secret_value }}"
-          GITHUB_USER="${{ github.actor }}"
-          MOUNT_PATH=$(echo "$SECRET_PATH" | cut -d'/' -f1)
-          VALID_MOUNTS="roletest"
-          if [[ ! " ${VALID_MOUNTS[@]} " =~ " ${MOUNT_PATH} " ]]; then
-            echo "Invalid Vault mount path. Allowed mounts are: ${VALID_MOUNTS[@]}"
-            exit 1
-          fi
-          echo "Vault mount path $MOUNT_PATH is valid."
-          TEAMS=$(curl -s \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/users/$GITHUB_USER/teams" | jq -r '.[].slug') 
-          echo "Teams for user $GITHUB_USER: $TEAMS" 
-          if echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_DEVOPS"; then
-            ALLOWED_PATHS=("devops" "DBA" "engineering" "secret" "roletest")
-          elif echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_DEVLEADS"; then
-            ALLOWED_PATHS=("DBA")
-          elif echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_ENGINEERING"; then
-            ALLOWED_PATHS=("engineering" "secret")
-          else
-            echo "User $GITHUB_USER is not in a recognized team. Access denied."
-            exit 1
-          fi 
-          if [[ ! " ${ALLOWED_PATHS[@]} " =~ " ${MOUNT_PATH} " ]]; then
-            echo "User $GITHUB_USER is not allowed to write to mount path: $MOUNT_PATH"
-            exit 1
-          fi
-          echo "User $GITHUB_USER is authorized to write to the path: $MOUNT_PATH" 
+if ! printf '%s\n' "${VALID_MOUNTS[@]}" | grep -qx "$MOUNT_PATH"; then
+    echo "Invalid Vault mount path. Allowed mounts are: ${VALID_MOUNTS[*]}"
+    exit 1
+fi
 
-      - name: Insert Secret into Vault
-        if: success()
-        run: |
-          VAULT_ADDR=${{ vars.VPAY_VAULT_VM_URL }}
-          VAULT_TOKEN=${{ secrets.VPAY_VAULT_VM_TOKEN }}
-          SECRET_PATH="${{ inputs.secret_path }}"
-          SECRET_KEY="${{ inputs.secret_key }}"
-          SECRET_VALUE="${{ inputs.secret_value }}"
-          curl --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data '{"data": {"'"$SECRET_KEY"'": "'"$SECRET_VALUE"'"}}' "$VAULT_ADDR/v1/$SECRET_PATH"
-          echo "Secret inserted/updated successfully."
+
+2. Error Handling for jq and curl: Ensure that jq and curl commands handle errors gracefully. For instance, if curl fails to fetch user teams or jq fails to parse, the script might fail silently or produce unclear errors.
+
+TEAMS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+        "https://api.github.com/users/$GITHUB_USER/teams" | jq -r '.[].slug') || {
+    echo "Failed to fetch user teams or parse JSON response."
+    exit 1
+}
+
+
+3. Improved Input Validation: Validate secret_path, secret_key, and secret_value inputs to avoid potential misconfigurations or malicious paths.
+
+if [[ -z "$SECRET_PATH" || -z "$SECRET_KEY" || -z "$SECRET_VALUE" ]]; then
+    echo "Secret path, key, or value cannot be empty."
+    exit 1
+fi
+
+
+4. Vault API Endpoint: Ensure that the SECRET_PATH provided by the user aligns with the Vault API’s expectation (e.g., appending /data if using KV version 2).
+
+FULL_PATH="${VAULT_ADDR}/v1/${SECRET_PATH}"
+
+
+5. Use --fail with curl: Add --fail to curl to ensure proper error reporting in case of HTTP failures.
+
+curl --fail --header "X-Vault-Token: $VAULT_TOKEN" \
+     --request POST \
+     --data '{"data": {"'"$SECRET_KEY"'": "'"$SECRET_VALUE"'"}}' \
+     "$FULL_PATH" || {
+    echo "Failed to insert/update the secret in Vault."
+    exit 1
+}
+
+
+6. Logging: Mask sensitive information like tokens and secret values during logging for security.
+
+
+7. Dynamic Validation of Vault Permissions: Instead of hardcoding team-to-path mappings, fetch these dynamically from a configuration file or Vault itself for better maintainability.
+
+
+
+Final Adjusted Workflow Snippet (Bash Enhancements):
+
+VALID_MOUNTS=("roletest")
+if ! printf '%s\n' "${VALID_MOUNTS[@]}" | grep -qx "$MOUNT_PATH"; then
+    echo "Invalid Vault mount path. Allowed mounts are: ${VALID_MOUNTS[*]}"
+    exit 1
+fi
+
+TEAMS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+        "https://api.github.com/users/$GITHUB_USER/teams" | jq -r '.[].slug') || {
+    echo "Failed to fetch user teams or parse JSON response."
+    exit 1
+}
+
+if echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_DEVOPS"; then
+    ALLOWED_PATHS=("devops" "DBA" "engineering" "secret" "roletest")
+elif echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_DEVLEADS"; then
+    ALLOWED_PATHS=("DBA")
+elif echo "$TEAMS" | grep -qw "AZU_OFT_COMMPAY_ENGINEERING"; then
+    ALLOWED_PATHS=("engineering" "secret")
+else
+    echo "User $GITHUB_USER is not in a recognized team. Access denied."
+    exit 1
+fi
+
+if ! printf '%s\n' "${ALLOWED_PATHS[@]}" | grep -qx "$MOUNT_PATH"; then
+    echo "User $GITHUB_USER is not allowed to write to mount path: $MOUNT_PATH"
+    exit 1
+fi
+
+FULL_PATH="${VAULT_ADDR}/v1/${SECRET_PATH}"
+curl --fail --header "X-Vault-Token: $VAULT_TOKEN" \
+     --request POST \
+     --data '{"data": {"'"$SECRET_KEY"'": "'"$SECRET_VALUE"'"}}' \
+     "$FULL_PATH" || {
+    echo "Failed to insert/update the secret in Vault."
+    exit 1
+}
+echo "Secret inserted/updated successfully."
+
+These adjustments should make the workflow more robust, secure, and maintainable. Let me know if you need help integrating these changes!
+

@@ -36,8 +36,8 @@ jobs:
           GITHUB_USER="${{ github.actor }}"
           MOUNT_PATH=$(echo "$SECRET_PATH" | cut -d'/' -f1)
 
-          # Validate mount path
-          VALID_MOUNTS=("roletest")
+          # Define valid Vault mounts
+          VALID_MOUNTS=("devops" "DBA" "engineering" "secret" "roletest")
           if ! printf '%s\n' "${VALID_MOUNTS[@]}" | grep -qx "$MOUNT_PATH"; then
               echo "Invalid Vault mount path. Allowed mounts are: ${VALID_MOUNTS[*]}"
               exit 1

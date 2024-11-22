@@ -2,16 +2,11 @@
         id: validate_path
         run: |
           SECRET_PATH="${{ inputs.secret_path }}"
-          SECRET_KEY="${{ inputs.secret_key }}"
-          SECRET_VALUE="${{ inputs.secret_value }}"
           GITHUB_USER="${{ github.actor }}"
           MOUNT_PATH=$(echo "$SECRET_PATH" | cut -d'/' -f1)
 
-          # Define valid Vault mounts (as a string for POSIX compatibility)
+          # Define valid Vault mounts
           VALID_MOUNTS="devops DBA engineering secret roletest"
-          echo "Valid mounts: $VALID_MOUNTS"
-
-          # Check if the mount path is valid
           if ! echo "$VALID_MOUNTS" | grep -qw "$MOUNT_PATH"; then
               echo "Invalid Vault mount path. Allowed mounts are: $VALID_MOUNTS"
               exit 1
@@ -19,11 +14,15 @@
           echo "Vault mount path $MOUNT_PATH is valid."
 
           # Fetch user's teams
-          TEAMS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                  "https://api.github.com/users/$GITHUB_USER/teams" | jq -r '.[].slug') || {
-              echo "Failed to fetch user teams or parse JSON response."
+          TEAMS_RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                           "https://api.github.com/users/$GITHUB_USER/teams")
+          echo "Teams API Response: $TEAMS_RESPONSE"
+          
+          TEAMS=$(echo "$TEAMS_RESPONSE" | jq -r 'if type=="array" then .[].slug else empty end')
+          if [ -z "$TEAMS" ]; then
+              echo "No teams found or invalid response: $TEAMS_RESPONSE"
               exit 1
-          }
+          fi
           echo "Teams for user $GITHUB_USER: $TEAMS"
 
           # Determine allowed paths based on team membership

@@ -44,3 +44,6 @@
               exit 1
           fi
           echo "User $GITHUB_USER is authorized to write to the path: $MOUNT_PATH"
+
+curl -s -H "Authorization: Bearer YOUR_PERSONAL_ACCESS_TOKEN" \
+  "https://api.github.com/user/teams" | jq '.[] | {slug, organization: .organization.login, role}'

@@ -1,24 +1,99 @@
-Here is the respone...
-{
-  "state": "active",
-  "role": "member",
-  "url": "https://api.github.com/organizations/10351111/team/101111/memberships/cboya1_tvz"
-}
+name: Vault Secret Management
 
-here is the 3 different user groups
-AZU_OFT_DEVOPS
-AZU_OFT_COMMPAY_DEVLEADS
-AZU_OFT_COMMPAY_ENGINEERS
+on:
+  workflow_dispatch:
+    inputs:
+      vault_mount_path:
+        description: "Enter the Vault secret mount path"
+        required: true
+      secret_key:
+        description: "Enter the secret key"
+        required: true
+      secret_value:
+        description: "Enter the secret value"
+        required: true
 
-Here is the 3 different vault mount paths
-/devops
-/engineering
-/dba
-/secrets
+jobs:
+  validate-user-permission:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check User Group Membership
+        id: check_group
+        run: |
+          GITHUB_USER="${{ github.actor }}"
+          echo "Checking group membership for user: $GITHUB_USER"
+          
+          # Get user teams
+          RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.ACTIONS_PAT_TOKEN }}" \
+            "https://api.github.com/user/teams")
+          
+          # Define groups
+          groups=("AZU_OFT_DEVOPS" "AZU_OFT_COMMPAY_DEVLEADS" "AZU_OFT_COMMPAY_ENGINEERS")
+          mount_paths=("/devops" "/engineering" "/dba" "/secrets")
+          user_group=""
+          
+          for group in "${groups[@]}"; do
+            if echo "$RESPONSE" | grep -q "$group"; then
+              user_group="$group"
+              break
+            fi
+          done
+          
+          if [ -z "$user_group" ]; then
+            echo "User doesn't have sufficient permission to perform this action."
+            exit 1
+          fi
+          
+          echo "User belongs to group: $user_group"
+          echo "group=$user_group" >> $GITHUB_ENV
 
-go through each one of the group from top to bottom and whichever group the user exit break the loop. in the next workflow step let execute
-connect to vault and insert secret. inputs will be received through workflow_dispatch and users enters secret mount path along with vault secret in key and value format
-if the group is AZU_OFT_DEVOPS allow user to insert secret into any mount path
-if the group is AZU_OFT_COMMPAY_DEVLEADS allow user to insert secret into any mount path other than /devops
-if the group is AZU_OFT_COMMPAY_ENGINEERS allow user to insert secret into /engineering and /secrets
-else exist with message user doesn't have sufficient permission to perform this action
+      - name: Validate Mount Path Permission
+        id: validate_permission
+        run: |
+          VAULT_MOUNT_PATH="${{ github.event.inputs.vault_mount_path }}"
+          USER_GROUP="${{ env.group }}"
+          
+          echo "Validating access for mount path: $VAULT_MOUNT_PATH"
+          case "$USER_GROUP" in
+            "AZU_OFT_DEVOPS")
+              # Full access
+              ;;
+            "AZU_OFT_COMMPAY_DEVLEADS")
+              if [ "$VAULT_MOUNT_PATH" == "/devops" ]; then
+                echo "Access denied: Leads cannot write to /devops."
+                exit 1
+              fi
+              ;;
+            "AZU_OFT_COMMPAY_ENGINEERS")
+              if [ "$VAULT_MOUNT_PATH" != "/engineering" ] && [ "$VAULT_MOUNT_PATH" != "/secrets" ]; then
+                echo "Access denied: Engineers can only write to /engineering or /secrets."
+                exit 1
+              fi
+              ;;
+            *)
+              echo "User doesn't have sufficient permission to perform this action."
+              exit 1
+              ;;
+          esac
+          
+          echo "Access validated for mount path: $VAULT_MOUNT_PATH"
+
+  insert-secret:
+    needs: validate-user-permission
+    runs-on: ubuntu-latest
+    steps:
+      - name: Insert Secret into Vault
+        run: |
+          VAULT_MOUNT_PATH="${{ github.event.inputs.vault_mount_path }}"
+          SECRET_KEY="${{ github.event.inputs.secret_key }}"
+          SECRET_VALUE="${{ github.event.inputs.secret_value }}"
+          
+          echo "Inserting secret into Vault..."
+          # Connect to Vault and insert the secret
+          curl -s \
+            --request POST \
+            --header "X-Vault-Token: ${{ secrets.VAULT_TOKEN }}" \
+            --data "{\"${SECRET_KEY}\": \"${SECRET_VALUE}\"}" \
+            "https://vault.example.com/v1${VAULT_MOUNT_PATH}"
+          
+          echo "Secret inserted successfully!"

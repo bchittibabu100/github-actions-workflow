@@ -1,16 +1,24 @@
-      - name: Fetch github_user membership
-        run: |
-          GITHUB_USER="${{ github.actor }}"
-          echo "github_user: $GITHUB_USER"
-          curl -s -H "Authorization: Bearer ${{ secrets.ACTIONS_PAT_TOKEN }}" "https://api.github.com/users/cboya1_uhg/teams"
+Here is the respone...
+{
+  "state": "active",
+  "role": "member",
+  "url": "https://api.github.com/organizations/10351111/team/101111/memberships/cboya1_tvz"
+}
 
-action logs:
-2024-11-24T01:56:55.0883785Z [36;1mcurl -s -H "Authorization: ***" "https://api.github.com/users/cboya1_uhg/teams"[0m
-2024-11-24T01:56:55.0900667Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-2024-11-24T01:56:55.0901140Z ##[endgroup]
-2024-11-24T01:56:55.1035621Z github_user: cboya1_tpc
-2024-11-24T01:56:55.2837168Z {
-2024-11-24T01:56:55.2837537Z   "message": "Not Found",
-2024-11-24T01:56:55.2837998Z   "documentation_url": "https://docs.github.com/rest",
-2024-11-24T01:56:55.2838432Z   "status": "404"
-2024-11-24T01:56:55.2838792Z }
+here is the 3 different user groups
+AZU_OFT_DEVOPS
+AZU_OFT_COMMPAY_DEVLEADS
+AZU_OFT_COMMPAY_ENGINEERS
+
+Here is the 3 different vault mount paths
+/devops
+/engineering
+/dba
+/secrets
+
+go through each one of the group from top to bottom and whichever group the user exit break the loop. in the next workflow step let execute
+connect to vault and insert secret. inputs will be received through workflow_dispatch and users enters secret mount path along with vault secret in key and value format
+if the group is AZU_OFT_DEVOPS allow user to insert secret into any mount path
+if the group is AZU_OFT_COMMPAY_DEVLEADS allow user to insert secret into any mount path other than /devops
+if the group is AZU_OFT_COMMPAY_ENGINEERS allow user to insert secret into /engineering and /secrets
+else exist with message user doesn't have sufficient permission to perform this action

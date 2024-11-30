@@ -1,76 +1,37 @@
-{
-  "id": "CVE-2024-37371_ubuntu:jammy:libgssapi-krb5-2_1.19.2-2ubuntu0.3",
-  "severity": "9.1"
-}
-{
-  "id": "CVE-2024-37371_ubuntu:jammy:libk5crypto3_1.19.2-2ubuntu0.3",
-  "severity": "9.1"
-}
-{
-  "id": "CVE-2022-40735_ubuntu:jammy:openssl_3.0.2-0ubuntu1.15",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2024-37371_ubuntu:jammy:libkrb5support0_1.19.2-2ubuntu0.3",
-  "severity": "9.1"
-}
-{
-  "id": "CVE-2022-40735_ubuntu:jammy:libssl3_3.0.2-0ubuntu1.15",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2024-37371_ubuntu:jammy:libkrb5-3_1.19.2-2ubuntu0.3",
-  "severity": "9.1"
-}
-{
-  "id": "CVE-2024-37370_ubuntu:jammy:libk5crypto3_1.19.2-2ubuntu0.3",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2024-37370_ubuntu:jammy:libgssapi-krb5-2_1.19.2-2ubuntu0.3",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2024-37370_ubuntu:jammy:libkrb5support0_1.19.2-2ubuntu0.3",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2024-37370_ubuntu:jammy:libkrb5-3_1.19.2-2ubuntu0.3",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2018-5709_ubuntu:jammy:libkrb5-3_1.19.2-2ubuntu0.3",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2018-5709_ubuntu:jammy:libkrb5support0_1.19.2-2ubuntu0.3",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2018-5709_ubuntu:jammy:libgssapi-krb5-2_1.19.2-2ubuntu0.3",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2017-11164_ubuntu:jammy:libpcre3:2_8.39-13ubuntu0.22.04.1",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2016-20013_ubuntu:jammy:libc-bin_2.35-0ubuntu3.7",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2022-4899_ubuntu:jammy:libzstd1_1.4.8+dfsg-3build1",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2016-20013_ubuntu:jammy:libc6_2.35-0ubuntu3.7",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2022-41409_ubuntu:jammy:libpcre2-8-0_10.39-3ubuntu0.1",
-  "severity": "7.5"
-}
-{
-  "id": "CVE-2018-5709_ubuntu:jammy:libk5crypto3_1.19.2-2ubuntu0.3",
-  "severity": "7.5"
-}
+FROM docker.repo1.vhc.com/vpay-docker/base-images/dotnet/sdk:8.0.403-jammy as base
+WORKDIR /app
+
+FROM base as build
+
+ENV PROJECT=src/VPay.MEP.API/VPay.MEP.API.csproj
+
+COPY nuget.config* ./
+COPY *.sln ./
+
+SHELL ["/bin/bash", "-O", "globstar", "-c"]
+RUN --mount=target=docker_build_context \
+cd docker_build_context;\
+cp **/*.csproj ../ --parents;
+RUN rm -rf docker_build_context
+SHELL ["/bin/sh", "-c"]
+
+RUN dotnet restore ${PROJECT}
+COPY . ./
+RUN dotnet publish --no-restore -c Release -o /app/out ${PROJECT}
+
+
+FROM docker.repo1.vhc.com/vpay-docker/base-images/dotnet/aspnet:8.0.4-jammy-db2 AS final
+RUN ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+
+WORKDIR /app
+
+COPY --from=build /app/out .
+ENV ASPNETCORE_URLS=http://+:80
+
+RUN ln -s VPay.MEP.API.dll Entrypoint.dll
+
+ENTRYPOINT [ "dotnet", "Entrypoint.dll" ]
+
+## Optionally add image build time
+ARG IMAGE_BUILD_TIME
+ENV IMAGE_BUILD_TIME ${IMAGE_BUILD_TIME}

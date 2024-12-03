@@ -1,86 +1,118 @@
-ldops02 ~ # docker inspect jfrog.test.net/plinfharbor/base-images/dotnet/sdk:6.0-focal
-[
-    {
-        "Id": "sha256:188936c02d0e294a7b061460460ab3239a5d8f937e333394348465cc2ce30979",
-        "RepoTags": [
-            "jfrog.test.net/plinfharbor/base-images/dotnet/sdk:6.0-focal"
-        ],
-        "RepoDigests": [
-            "jfrog.test.net/plinfharbor/base-images/dotnet/sdk@sha256:751bd030ed93d7c20db7043c2d0b0668fc283a30b7b441c3ff0592d364023081"
-        ],
-        "Parent": "",
-        "Comment": "buildkit.dockerfile.v0",
-        "Created": "2022-12-23T12:04:29.023485798Z",
-        "DockerVersion": "",
-        "Author": "",
-        "Config": {
-            "Hostname": "",
-            "Domainname": "",
-            "User": "",
-            "AttachStdin": false,
-            "AttachStdout": false,
-            "AttachStderr": false,
-            "Tty": false,
-            "OpenStdin": false,
-            "StdinOnce": false,
-            "Env": [
-                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-                "ASPNETCORE_URLS=",
-                "DOTNET_RUNNING_IN_CONTAINER=true",
-                "DOTNET_VERSION=6.0.12",
-                "ASPNET_VERSION=6.0.12",
-                "DOTNET_GENERATE_ASPNET_CERTIFICATE=false",
-                "DOTNET_NOLOGO=true",
-                "DOTNET_SDK_VERSION=6.0.404",
-                "DOTNET_USE_POLLING_FILE_WATCHER=true",
-                "NUGET_XMLDOC_MODE=skip",
-                "POWERSHELL_DISTRIBUTION_CHANNEL=PSDocker-DotnetSDK-Ubuntu-20.04",
-                "ASPNETCORE_FORWARDEDHEADERS_ENABLED=true"
-            ],
-            "Cmd": [
-                "/bin/bash"
-            ],
-            "Image": "",
-            "Volumes": null,
-            "WorkingDir": "",
-            "Entrypoint": null,
-            "OnBuild": null,
-            "Labels": {
-                "org.opencontainers.image.ref.name": "ubuntu",
-                "org.opencontainers.image.version": "20.04"
-            }
-        },
-        "Architecture": "amd64",
-        "Os": "linux",
-        "Size": 792776795,
-        "GraphDriver": {
-            "Data": {
-                "LowerDir": "/var/lib/docker/overlay2/948aa7fa98dbacd6a72f31d8ac182bba5d0c1919ed372aa5472642e94bbfc3c0/diff:/var/lib/docker/overlay2/f7a8126f4ff41efe1dd4a85b0a825a6d6b722a8dc46ff43e14f4960829f2d7d9/diff:/var/lib/docker/overlay2/82bfd9e758b5c16c5620b243b4c78a8450e0d7c2104aafa2fee1b01c60356be3/diff:/var/lib/docker/overlay2/13cf0b419687ca55ca70992cebfe7c277041bf4fa0bdcc7ec2a20734da2e09f2/diff:/var/lib/docker/overlay2/b418a145fc6dea9d37816572b4f6f58386b8b4ead6b5c9a24cf13280b89d4f17/diff:/var/lib/docker/overlay2/0121363b4375b2cb15fb8965bac686adda673618d9aa6cfac2bdf147cf524f36/diff:/var/lib/docker/overlay2/e0c9cc8af8025c71bf4074c5227a3bde4851930400cb430de2f3a5b4fec3c8d2/diff:/var/lib/docker/overlay2/1fc31c15d56c939427fc0bf3d2a50a539951f67fef6e449f55be1c24505b7683/diff:/var/lib/docker/overlay2/31a8fa21de157e7714db179e8f7426d5b819dc8426b515bf077e77c63967a68d/diff:/var/lib/docker/overlay2/ebd325b511e838c4eb456334b87e374f21026276c725ce6ab8ecb6fb7d71c0d9/diff:/var/lib/docker/overlay2/b7db11949022daea3ab4d765f25d91bc814891f041e782a6ce032043a6ecf56b/diff",
-                "MergedDir": "/var/lib/docker/overlay2/7c23b7426e9c4090be38919bc1447fa9c7dfedf3d34144b2c00b6b9898609b28/merged",
-                "UpperDir": "/var/lib/docker/overlay2/7c23b7426e9c4090be38919bc1447fa9c7dfedf3d34144b2c00b6b9898609b28/diff",
-                "WorkDir": "/var/lib/docker/overlay2/7c23b7426e9c4090be38919bc1447fa9c7dfedf3d34144b2c00b6b9898609b28/work"
-            },
-            "Name": "overlay2"
-        },
-        "RootFS": {
-            "Type": "layers",
-            "Layers": [
-                "sha256:0002c93bdb3704dd9e36ce5153ef637f84de253015f3ee330468dccdeacad60b",
-                "sha256:efd216112c85a9fdc27390cc712e2cd39155caf408519925a634d1315b7dcd7a",
-                "sha256:97974c223bd43793f09af76fecaea47c307af36e296e5c19455ab2781376d881",
-                "sha256:ff7316d0ba57f12a3c07a357e59611987f6f38dfce2c26f1dbe75ee71e8d9722",
-                "sha256:43c1be86296878ac421fb7e615ee39ec0568d0f639b7626a26d1de92ae7fabd1",
-                "sha256:18dd21935b9cf131f2fdd5ba38243c6fa654a665a124318b1f318c1d9eb55c9f",
-                "sha256:474538158930daa54edd536b0d2b90efaf2e202a6e7f5426aca8ffc25b8ba513",
-                "sha256:ec66a0a2015dd8611707e46b46f8346a8f456e55b3849de5597dd8dc949ae405",
-                "sha256:2742e8b3f399b2c4b056d01102af5a26cdbc0bf18bd191af77088b82e4fb00c6",
-                "sha256:cd5c892b9f0d439c64bc6f7d3222c8a67b4edc5bcdf615f40e613ea46abbd0cb",
-                "sha256:6fa0575db7126571f853569072a6b6e1322eabca8319c390c7cfcfe2cdb342a7",
-                "sha256:529fcb7cfe0bef58e601c5387fa3aa42b450f78ce0ebd5e4ab660c6424e3ddd0"
-            ]
-        },
-        "Metadata": {
-            "LastTagTime": "0001-01-01T00:00:00Z"
-        }
-    }
-]
+2024-12-02T21:25:05-06:00       INFO    [vuln] Vulnerability scanning is enabled
+2024-12-02T21:25:05-06:00	INFO	[secret] Secret scanning is enabled
+2024-12-02T21:25:05-06:00	INFO	[secret] If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2024-12-02T21:25:05-06:00	INFO	[secret] Please see also https://aquasecurity.github.io/trivy/v0.57/docs/scanner/secret#recommendation for faster secret detection
+2024-12-02T21:25:12-06:00	INFO	Detected OS	family="ubuntu" version="24.04"
+2024-12-02T21:25:12-06:00	INFO	[ubuntu] Detecting vulnerabilities...	os_version="24.04" pkg_num=113
+2024-12-02T21:25:12-06:00	INFO	Number of language-specific files	num=19
+2024-12-02T21:25:12-06:00	INFO	[dotnet-core] Detecting vulnerabilities...
+
+ubuntu-sdk:8.0-focal (ubuntu 24.04)
+
+Total: 16 (UNKNOWN: 0, LOW: 7, MEDIUM: 9, HIGH: 0, CRITICAL: 0)
+
+┌────────────────────┬────────────────┬──────────┬──────────┬───────────────────┬───────────────┬──────────────────────────────────────────────────────────────┐
+│      Library       │ Vulnerability  │ Severity │  Status  │ Installed Version │ Fixed Version │                            Title                             │
+├────────────────────┼────────────────┼──────────┼──────────┼───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ coreutils          │ CVE-2016-2781  │ LOW      │ affected │ 9.4-3ubuntu6      │               │ coreutils: Non-privileged session can escape to the parent   │
+│                    │                │          │          │                   │               │ session in chroot                                            │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2016-2781                    │
+├────────────────────┼────────────────┤          │          ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ gpgv               │ CVE-2022-3219  │          │          │ 2.4.4-2ubuntu17   │               │ gnupg: denial of service issue (resource consumption) using  │
+│                    │                │          │          │                   │               │ compressed packets                                           │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2022-3219                    │
+├────────────────────┼────────────────┤          │          ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ libc-bin           │ CVE-2016-20013 │          │          │ 2.39-0ubuntu8.3   │               │ sha256crypt and sha512crypt through 0.6 allow attackers to   │
+│                    │                │          │          │                   │               │ cause a denial of...                                         │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2016-20013                   │
+├────────────────────┤                │          │          │                   ├───────────────┤                                                              │
+│ libc6              │                │          │          │                   │               │                                                              │
+│                    │                │          │          │                   │               │                                                              │
+│                    │                │          │          │                   │               │                                                              │
+├────────────────────┼────────────────┤          │          ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ libgcrypt20        │ CVE-2024-2236  │          │          │ 1.10.3-2build1    │               │ libgcrypt: vulnerable to Marvin Attack                       │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-2236                    │
+├────────────────────┼────────────────┼──────────┤          ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ libpam-modules     │ CVE-2024-10041 │ MEDIUM   │          │ 1.5.3-5ubuntu5.1  │               │ pam: libpam: Libpam vulnerable to read hashed password       │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-10041                   │
+│                    ├────────────────┤          │          │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│                    │ CVE-2024-10963 │          │          │                   │               │ pam: Improper Hostname Interpretation in pam_access Leads to │
+│                    │                │          │          │                   │               │ Access Control Bypass                                        │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-10963                   │
+├────────────────────┼────────────────┤          │          │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│ libpam-modules-bin │ CVE-2024-10041 │          │          │                   │               │ pam: libpam: Libpam vulnerable to read hashed password       │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-10041                   │
+│                    ├────────────────┤          │          │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│                    │ CVE-2024-10963 │          │          │                   │               │ pam: Improper Hostname Interpretation in pam_access Leads to │
+│                    │                │          │          │                   │               │ Access Control Bypass                                        │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-10963                   │
+├────────────────────┼────────────────┤          │          │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│ libpam-runtime     │ CVE-2024-10041 │          │          │                   │               │ pam: libpam: Libpam vulnerable to read hashed password       │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-10041                   │
+│                    ├────────────────┤          │          │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│                    │ CVE-2024-10963 │          │          │                   │               │ pam: Improper Hostname Interpretation in pam_access Leads to │
+│                    │                │          │          │                   │               │ Access Control Bypass                                        │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-10963                   │
+├────────────────────┼────────────────┤          │          │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│ libpam0g           │ CVE-2024-10041 │          │          │                   │               │ pam: libpam: Libpam vulnerable to read hashed password       │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-10041                   │
+│                    ├────────────────┤          │          │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│                    │ CVE-2024-10963 │          │          │                   │               │ pam: Improper Hostname Interpretation in pam_access Leads to │
+│                    │                │          │          │                   │               │ Access Control Bypass                                        │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-10963                   │
+├────────────────────┼────────────────┼──────────┤          ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ libssl3t64         │ CVE-2024-41996 │ LOW      │          │ 3.0.13-0ubuntu3.4 │               │ openssl: remote attackers (from the client side) to trigger  │
+│                    │                │          │          │                   │               │ unnecessarily expensive server-side...                       │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2024-41996                   │
+├────────────────────┤                │          │          │                   ├───────────────┤                                                              │
+│ openssl            │                │          │          │                   │               │                                                              │
+│                    │                │          │          │                   │               │                                                              │
+│                    │                │          │          │                   │               │                                                              │
+├────────────────────┼────────────────┼──────────┤          ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ wget               │ CVE-2021-31879 │ MEDIUM   │          │ 1.21.4-1ubuntu4.1 │               │ wget: authorization header disclosure on redirect            │
+│                    │                │          │          │                   │               │ https://avd.aquasec.com/nvd/cve-2021-31879                   │
+└────────────────────┴────────────────┴──────────┴──────────┴───────────────────┴───────────────┴──────────────────────────────────────────────────────────────┘
+
+usr/lib/dotnet/sdk/8.0.110/Containers/tasks/net8.0/Microsoft.NET.Build.Containers.deps.json (dotnet-core)
+
+Total: 1 (UNKNOWN: 0, LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 1)
+
+┌─────────────────┬───────────────┬──────────┬────────┬───────────────────┬──────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
+│     Library     │ Vulnerability │ Severity │ Status │ Installed Version │                  Fixed Version                   │                           Title                            │
+├─────────────────┼───────────────┼──────────┼────────┼───────────────────┼──────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│ NuGet.Packaging │ CVE-2024-0057 │ CRITICAL │ fixed  │ 6.8.1-rc.32767    │ 5.11.6, 6.0.6, 6.3.4, 6.4.3, 6.6.2, 6.7.1, 6.8.1 │ dotnet: X509 Certificates - Validation Bypass across Azure │
+│                 │               │          │        │                   │                                                  │ https://avd.aquasec.com/nvd/cve-2024-0057                  │
+└─────────────────┴───────────────┴──────────┴────────┴───────────────────┴──────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
+
+usr/lib/dotnet/sdk/8.0.110/MSBuild.deps.json (dotnet-core)
+
+Total: 1 (UNKNOWN: 0, LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 1)
+
+┌─────────────────┬───────────────┬──────────┬────────┬───────────────────┬──────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
+│     Library     │ Vulnerability │ Severity │ Status │ Installed Version │                  Fixed Version                   │                           Title                            │
+  1 FROM ubuntu:24.04
+├─────────────────┼───────────────┼──────────┼────────┼───────────────────┼──────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│ NuGet.Packaging │ CVE-2024-0057 │ CRITICAL │ fixed  │ 6.8.1-rc.32767    │ 5.11.6, 6.0.6, 6.3.4, 6.4.3, 6.6.2, 6.7.1, 6.8.1 │ dotnet: X509 Certificates - Validation Bypass across Azure │
+│                 │               │          │        │                   │                                                  │ https://avd.aquasec.com/nvd/cve-2024-0057                  │
+└─────────────────┴───────────────┴──────────┴────────┴───────────────────┴──────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
+
+usr/lib/dotnet/sdk/8.0.110/NuGet.CommandLine.XPlat.deps.json (dotnet-core)
+
+Total: 1 (UNKNOWN: 0, LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 1)
+
+┌─────────────────┬───────────────┬──────────┬────────┬───────────────────┬──────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
+│     Library     │ Vulnerability │ Severity │ Status │ Installed Version │                  Fixed Version                   │                           Title                            │
+├─────────────────┼───────────────┼──────────┼────────┼───────────────────┼──────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│ NuGet.Packaging │ CVE-2024-0057 │ CRITICAL │ fixed  │ 6.8.1-rc.32767    │ 5.11.6, 6.0.6, 6.3.4, 6.4.3, 6.6.2, 6.7.1, 6.8.1 │ dotnet: X509 Certificates - Validation Bypass across Azure │
+│                 │               │          │        │                   │                                                  │ https://avd.aquasec.com/nvd/cve-2024-0057                  │
+└─────────────────┴───────────────┴──────────┴────────┴───────────────────┴──────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
+
+usr/lib/dotnet/sdk/8.0.110/dotnet.deps.json (dotnet-core)
+
+Total: 1 (UNKNOWN: 0, LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 1)
+
+┌─────────────────┬───────────────┬──────────┬────────┬───────────────────┬──────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
+│     Library     │ Vulnerability │ Severity │ Status │ Installed Version │                  Fixed Version                   │                           Title                            │
+├─────────────────┼───────────────┼──────────┼────────┼───────────────────┼──────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│ NuGet.Packaging │ CVE-2024-0057 │ CRITICAL │ fixed  │ 6.8.1-rc.32767    │ 5.11.6, 6.0.6, 6.3.4, 6.4.3, 6.6.2, 6.7.1, 6.8.1 │ dotnet: X509 Certificates - Validation Bypass across Azure │
+│                 │               │          │        │                   │                                                  │ https://avd.aquasec.com/nvd/cve-2024-0057                  │

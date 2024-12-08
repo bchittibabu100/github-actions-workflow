@@ -1,4 +1,5 @@
-(Get-Content .\AboutInfo.cs).Replace('[[BuildName]]', '${bamboo.buildPlanName}') | Set-Content .\AboutInfo.cs
-(Get-Content .\AboutInfo.cs).Replace('[[GitRevision]]', '${bamboo.planRepository.revision}') | Set-Content .\AboutInfo.cs
-(Get-Content .\AboutInfo.cs).Replace('[[VersionInfo]]', '${bamboo.buildNumber}') | Set-Content .\AboutInfo.cs
-(Get-Content .\AboutInfo.cs).Replace('[[BuildTime]]', '${bamboo.buildTimeStamp}') | Set-Content .\AboutInfo.cs
+            this.GitRevision = System.Environment.GetEnvironmentVariable("RELEASE_COMMIT_SHA") ?? "[[GitRevision]]";
+            this.BuildTime = System.Environment.GetEnvironmentVariable("IMAGE_BUILD_TIME") ?? "[[BuildTime]]";
+            this.Environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            this.VersionInfo = System.Environment.GetEnvironmentVariable("RELEASE_TAG") ?? "[[VersionInfo]]";
+            this.DataCenter = System.Environment.GetEnvironmentVariable("DEPLOYMENT_DATACENTER") ?? "[[DataCenter]]";

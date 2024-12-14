@@ -17,18 +17,17 @@ on:
 
 jobs:
   build-and-deploy-parsing-api:
-    runs-on: 
+    runs-on:
       group: vpay-runner-group
     env:
       VAULT_ADDR: ${{ secrets.PRODVAULT_URL }}
       VAULT_TOKEN: ${{ secrets.PRODVAULT_TOKEN }}
     strategy:
       matrix:
-        stage:
+        host:
           - asstglds01.vpayusa.net
           - asstglds02.vpayusa.net
           - asstglds03.vpayusa.net
-        prod:
           - plprdlds01.vpayusa.net
           - plprdlds02.vpayusa.net
           - plprdlds03.vpayusa.net
@@ -47,10 +46,10 @@ jobs:
 
       - name: Replace placeholders in AboutInfo.cs
         run: |
-          sed -i "s/\[\[GitRevision\]\]/${{ env.RELEASE_COMMIT_SHA }}/g" src/VPay.DocSys.Parsing.Api/AboutInfo.cs
-          sed -i "s/\[\[BuildTime\]\]/${{ env.IMAGE_BUILD_TIME }}/g" src/VPay.DocSys.Parsing.Api/AboutInfo.cs
-          sed -i "s/\[\[VersionInfo\]\]/${{ env.RELEASE_TAG }}/g" src/VPay.DocSys.Parsing.Api/AboutInfo.cs
-          sed -i "s/\[\[DataCenter\]\]/plano/g" src/VPay.DocSys.Parsing.Api/AboutInfo.cs
+          sed -i "s/GitRevision/${{ env.RELEASE_COMMIT_SHA }}/g" src/VPay.DocSys.Parsing.Api/AboutInfo.cs
+          sed -i "s/BuildTime/${{ env.IMAGE_BUILD_TIME }}/g" src/VPay.DocSys.Parsing.Api/AboutInfo.cs
+          sed -i "s/VersionInfo/${{ env.RELEASE_TAG }}/g" src/VPay.DocSys.Parsing.Api/AboutInfo.cs
+          sed -i "s/DataCenter/plano/g" src/VPay.DocSys.Parsing.Api/AboutInfo.cs
         shell: bash
 
       - name: Substitute environment variables
@@ -76,18 +75,15 @@ jobs:
           dotnet publish ./src/VPay.DocSys.Parsing.Api/VPay.DocSys.Parsing.Api.csproj -c Release -r centos.7-x64 -o ./artifacts
         shell: bash
 
-      - name: Deploy and Restart Services on Staging
+      - name: Deploy and Restart Services
         run: |
-          echo "Deploying to ${{ matrix.stage }}"
-          scp artifacts/* bamboosa@${{ matrix.stage }}:/usr/local/vpay/docsys/parsing || echo "Failed to copy artifacts to ${{ matrix.stage }}"
-          ssh bamboosa@${{ matrix.stage }} "sudo systemctl reload-or-restart kestrel-vpay-docsys-parsing-api.service" || echo "Failed to restart service on ${{ matrix.stage }}"
+          # Filter hosts based on environment
+          if [[ "${{ matrix.host }}" == *"stg"* && "${{ env.env_name }}" == "stage" ]] || \
+             [[ "${{ matrix.host }}" == *"prd"* && "${{ env.env_name }}" == "prod" ]]; then
+            echo "Deploying to ${{ matrix.host }}"
+            scp artifacts/* bamboosa@${{ matrix.host }}:/usr/local/vpay/docsys/parsing || echo "Failed to copy artifacts to ${{ matrix.host }}"
+            ssh bamboosa@${{ matrix.host }} "sudo systemctl reload-or-restart kestrel-vpay-docsys-parsing-api.service" || echo "Failed to restart service on ${{ matrix.host }}"
+          else
+            echo "Skipping ${{ matrix.host }} for environment ${{ env.env_name }}"
+          fi
         shell: bash
-        if: env.env_name == 'stage'
-
-      - name: Deploy and Restart Services on Production
-        run: |
-          echo "Deploying to ${{ matrix.prod }}"
-          scp artifacts/* bamboosa@${{ matrix.prod }}:/usr/local/vpay/docsys/parsing || echo "Failed to copy artifacts to ${{ matrix.prod }}"
-          ssh bamboosa@${{ matrix.prod }} "sudo systemctl reload-or-restart kestrel-vpay-docsys-parsing-api.service" || echo "Failed to restart service on ${{ matrix.prod }}"
-        shell: bash
-        if: env.env_name == 'prod'

@@ -16,21 +16,12 @@ on:
       - offload_from_bamboo
 
 jobs:
-  build-and-deploy-parsing-api:
-    runs-on:
+  build:
+    runs-on: 
       group: vpay-runner-group
     env:
       VAULT_ADDR: ${{ secrets.PRODVAULT_URL }}
       VAULT_TOKEN: ${{ secrets.PRODVAULT_TOKEN }}
-    strategy:
-      matrix:
-        host:
-          - asstglds01.vpayusa.net
-          - asstglds02.vpayusa.net
-          - asstglds03.vpayusa.net
-          - plprdlds01.vpayusa.net
-          - plprdlds02.vpayusa.net
-          - plprdlds03.vpayusa.net
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -75,15 +66,40 @@ jobs:
           dotnet publish ./src/VPay.DocSys.Parsing.Api/VPay.DocSys.Parsing.Api.csproj -c Release -r centos.7-x64 -o ./artifacts
         shell: bash
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: parsing-api-artifacts
+          path: ./artifacts
+
+  deploy:
+    needs: build
+    runs-on:
+      group: vpay-runner-group
+    strategy:
+      matrix:
+        host:
+          - asstglds01.vpayusa.net
+          - asstglds02.vpayusa.net
+          - asstglds03.vpayusa.net
+          - plprdlds01.vpayusa.net
+          - plprdlds02.vpayusa.net
+          - plprdlds03.vpayusa.net
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: parsing-api-artifacts
+
       - name: Deploy and Restart Services
         run: |
           # Filter hosts based on environment
-          if [[ "${{ matrix.host }}" == *"stg"* && "${{ env.env_name }}" == "stage" ]] || \
-             [[ "${{ matrix.host }}" == *"prd"* && "${{ env.env_name }}" == "prod" ]]; then
+          if [[ "${{ matrix.host }}" == *"stg"* && "${{ github.event.inputs.env }}" == "stage" ]] || \
+             [[ "${{ matrix.host }}" == *"prd"* && "${{ github.event.inputs.env }}" == "prod" ]]; then
             echo "Deploying to ${{ matrix.host }}"
             scp artifacts/* bamboosa@${{ matrix.host }}:/usr/local/vpay/docsys/parsing || echo "Failed to copy artifacts to ${{ matrix.host }}"
             ssh bamboosa@${{ matrix.host }} "sudo systemctl reload-or-restart kestrel-vpay-docsys-parsing-api.service" || echo "Failed to restart service on ${{ matrix.host }}"
           else
-            echo "Skipping ${{ matrix.host }} for environment ${{ env.env_name }}"
+            echo "Skipping ${{ matrix.host }} for environment ${{ github.event.inputs.env }}"
           fi
         shell: bash

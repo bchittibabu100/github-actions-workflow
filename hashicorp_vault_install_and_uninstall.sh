@@ -1,25 +1,56 @@
-Dec 18 23:30:48 asstglds03 systemd[1]: Stopped Runs the VPay DocSys Parsing API.
-Dec 18 23:30:48 asstglds03 systemd[1]: Started Runs the VPay DocSys Parsing API.
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: Unhandled exception. System.IO.FileNotFoundException: Could not load file or assembly 'Microsoft.Extensions.Caching.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'. The system cannot find the file specified.
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: File name: 'Microsoft.Extensions.Caching.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.Extensions.DependencyInjection.MvcRazorMvcCoreBuilderExtensions.AddRazorViewEngineServices(IServiceCollection services)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.Extensions.DependencyInjection.MvcRazorMvcCoreBuilderExtensions.AddRazorViewEngine(IMvcCoreBuilder builder)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.Extensions.DependencyInjection.MvcServiceCollectionExtensions.AddControllersWithViewsCore(IServiceCollection services)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.Extensions.DependencyInjection.MvcServiceCollectionExtensions.AddControllersWithViews(IServiceCollection services)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.Extensions.DependencyInjection.MvcServiceCollectionExtensions.AddMvc(IServiceCollection services)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.Extensions.DependencyInjection.MvcServiceCollectionExtensions.AddMvc(IServiceCollection services, Action`1 setupAction)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at VPay.DocSys.Parsing.Api.Startup.ConfigureServices(IServiceCollection services) in /home/gitrunner/actions-runner/_work/vpay-parsing/vpay-parsing/src/VPay.DocSys.Parsing.Api/Startup.cs:line 37
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at System.RuntimeMethodHandle.InvokeMethod(Object target, Span`1& arguments, Signature sig, Boolean constructor, Boolean wrapExceptions)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.AspNetCore.Hosting.ConfigureServicesBuilder.InvokeCore(Object instance, IServiceCollection services)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.AspNetCore.Hosting.ConfigureServicesBuilder.<>c__DisplayClass9_0.<Invoke>g__Startup|0(IServiceCollection serviceCollection)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.AspNetCore.Hosting.ConfigureServicesBuilder.Invoke(Object instance, IServiceCollection services)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.AspNetCore.Hosting.ConfigureServicesBuilder.<>c__DisplayClass8_0.<Build>b__0(IServiceCollection services)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.AspNetCore.Hosting.GenericWebHostBuilder.UseStartup(Type startupType, HostBuilderContext context, IServiceCollection services, Object instance)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.AspNetCore.Hosting.GenericWebHostBuilder.<>c__DisplayClass13_0.<UseStartup>b__0(HostBuilderContext context, IServiceCollection services)
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.Extensions.Hosting.HostBuilder.InitializeServiceProvider()
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at Microsoft.Extensions.Hosting.HostBuilder.Build()
-Dec 18 23:30:48 asstglds03 dotnet-vpay-docsys-parsing-api[13577]: at VPay.DocSys.Parsing.Api.Program.Main(String[] args) in /home/gitrunner/actions-runner/_work/vpay-parsing/vpay-parsing/src/VPay.DocSys.Parsing.Api/Program.cs:line 16
-Dec 18 23:30:48 asstglds03 systemd[1]: kestrel-vpay-docsys-parsing-api.service: main process exited, code=killed, status=6/ABRT
-Dec 18 23:30:48 asstglds03 systemd[1]: Unit kestrel-vpay-docsys-parsing-api.service entered failed state.
-Dec 18 23:30:48 asstglds03 systemd[1]: kestrel-vpay-docsys-parsing-api.service failed.
+Here is the contents of the csproj file.
+
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
+
+    <RuntimeIdentifiers>win10-x64;win10-x86;centos.7-x64;</RuntimeIdentifiers>
+    <SuppressDockerTargets>True</SuppressDockerTargets>
+
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\net6.0\VPay.DocSys.Parsing.Api.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\net6.0\VPay.DocSys.Parsing.Api.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;1591;NU1701</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.2.2" />
+    <PackageReference Include="GlobalExceptionHandler" Version="4.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.13" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="VPay.DocSys.HealthChecks" Version="2.1.9" />
+    <PackageReference Include="VPay.DocSys.HealthChecks.AspNetcore" Version="2.1.9" />
+    <PackageReference Include="VPay.DocSys.HealthChecks.FileSystem" Version="2.1.9" />
+    <PackageReference Include="VPay.DocSys.HealthChecks.HttpEndpoint" Version="2.1.9" />
+    <PackageReference Include="VPay.DocSys.HealthChecks.Network" Version="2.1.9" />
+    <PackageReference Include="VPay.DocSys.HealthChecks.Odbc" Version="2.1.9" />
+    <PackageReference Include="VPay.DocSys.HealthChecks.RabbitMQ" Version="2.1.9" />
+    <PackageReference Include="VPay.DocSys.HealthChecks.SqlServer" Version="2.1.9" />
+    <PackageReference Include="VPay.DocSys.HealthChecks.StorageManager" Version="2.1.9" />
+    <PackageReference Include="VPay.Queuing.DependencyInjection" Version="1.3.1" />
+    <PackageReference Include="VPay.Extensions.Logging.GrayLog" Version="0.6.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VPay.DocSys.Parsing\VPay.DocSys.Parsing.csproj" />
+  </ItemGroup>
+</Project>
+
+
+Here is the dotnet publish command
+dotnet publish ./src/VPay.DocSys.Parsing.Api/VPay.DocSys.Parsing.Api.csproj -c Release -r centos.7-x64 -o ./artifacts

@@ -1,18 +1,41 @@
-Run dotnet restore $PROJECT_DIR/$PROJECT_NAME.csproj
-  dotnet restore $PROJECT_DIR/$PROJECT_NAME.csproj
-  shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-  env:
-    DOCKER_REGISTRY_URL: docker.repo1.test.com/TPay-docker
-    PROJECT: user-management
-    IMAGE_NAME: user-management-api
-    DOCKERFILE: Dockerfile
-    BUILD_ARGS: PROJECT_DIR PROJECT_NAME
-    DOCKER_CONTEXT_DIR: 
-    VERSION: sonar-scan-poc
-    SONAR_TOKEN: ***
-    PROJECT_DIR: src/TPay.UserManagement.Api
-    PROJECT_NAME: TPay.UserManagement.Api
-    DOTNET_ROOT: /home/runner/.dotnet
-  
-  Determining projects to restore...
-/home/runner/.dotnet/sdk/8.0.404/NuGet.targets(174,5): error : 'sonar-scan-poc' is not a valid version string. (Parameter 'value') [/home/runner/_work/TPay-user-management-api/TPay-user-management-api/src/TPay.UserManagement.Api/TPay.UserManagement.Api.csproj]
+vault auth enable kubernetes
+vault write auth/kubernetes/config \
+    token_reviewer_jwt="<JWT from Kubernetes>" \
+    kubernetes_host="https://<KUBERNETES_API_SERVER>" \
+    kubernetes_ca_cert="<path/to/ca.crt>"
+kubectl create serviceaccount vault-reviewer -n kube-system
+kubectl create clusterrolebinding vault-reviewer-binding --clusterrole=system:auth-delegator --serviceaccount=kube-system:vault-reviewer
+kubectl get secret $(kubectl get serviceaccount vault-reviewer -n kube-system -o jsonpath='{.secrets[0].name}') -n kube-system -o jsonpath='{.data.token}' | base64 --decode
+https://<KUBERNETES_SERVICE_HOST>:<KUBERNETES_SERVICE_PORT>
+kubectl get configmap -n kube-system kube-root-ca.crt -o jsonpath='{.data.ca\.crt}'
+vault write auth/kubernetes/role/my-role \
+    bound_service_account_names=my-service-account \
+    bound_service_account_namespaces=my-namespace \
+    policies=my-policy \
+    ttl=24h
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-service-account
+  namespace: my-namespace
+
+kubectl apply -f service-account.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vault-integrated-pod
+  annotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/role: "my-role"
+    vault.hashicorp.com/agent-inject-token: "true"
+spec:
+  serviceAccountName: my-service-account
+  containers:
+  - name: app
+    image: your-app-image
+
+kubectl apply -f vault-integrated-pod.yaml
+
+kubectl logs vault-integrated-pod

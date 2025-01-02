@@ -1,41 +1,36 @@
-vault auth enable kubernetes
-vault write auth/kubernetes/config \
-    token_reviewer_jwt="<JWT from Kubernetes>" \
-    kubernetes_host="https://<KUBERNETES_API_SERVER>" \
-    kubernetes_ca_cert="<path/to/ca.crt>"
-kubectl create serviceaccount vault-reviewer -n kube-system
-kubectl create clusterrolebinding vault-reviewer-binding --clusterrole=system:auth-delegator --serviceaccount=kube-system:vault-reviewer
-kubectl get secret $(kubectl get serviceaccount vault-reviewer -n kube-system -o jsonpath='{.secrets[0].name}') -n kube-system -o jsonpath='{.data.token}' | base64 --decode
-https://<KUBERNETES_SERVICE_HOST>:<KUBERNETES_SERVICE_PORT>
-kubectl get configmap -n kube-system kube-root-ca.crt -o jsonpath='{.data.ca\.crt}'
-vault write auth/kubernetes/role/my-role \
-    bound_service_account_names=my-service-account \
-    bound_service_account_namespaces=my-namespace \
-    policies=my-policy \
-    ttl=24h
+#9 [final 2/6] RUN apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+#9 2.332 Get:8 http://security.ubuntu.com/ubuntu focal-security/multiverse amd64 Packages [30.9 kB]
+#9 2.520 Reading package lists...
+#9 5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal InRelease' is no longer signed.
+#9 5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
+#9 5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal-updates/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
+#9 5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal-updates InRelease' is no longer signed.
+#9 5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal-backports/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
+#9 5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal-backports InRelease' is no longer signed.
+#9 ERROR: process "/bin/sh -c apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata" did not complete successfully: exit code: 100
 
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: my-service-account
-  namespace: my-namespace
+#16 [build 7/9] RUN dotnet restore src/Vpay.Api.RestApi/Vpay.Api.RestApi.csproj
+#16 0.864   Determining projects to restore...
+#16 CANCELED
+------
+ > [final 2/6] RUN apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata:
+1.447 Get:6 http://security.ubuntu.com/ubuntu focal-security/universe amd64 Packages [1296 kB]
+1.672 Get:7 http://security.ubuntu.com/ubuntu focal-security/main amd64 Packages [4157 kB]
+2.332 Get:8 http://security.ubuntu.com/ubuntu focal-security/multiverse amd64 Packages [30.9 kB]
 
-kubectl apply -f service-account.yaml
-
-apiVersion: v1
-kind: Pod
-metadata:
-  name: vault-integrated-pod
-  annotations:
-    vault.hashicorp.com/agent-inject: "true"
-    vault.hashicorp.com/role: "my-role"
-    vault.hashicorp.com/agent-inject-token: "true"
-spec:
-  serviceAccountName: my-service-account
-  containers:
-  - name: app
-    image: your-app-image
-
-kubectl apply -f vault-integrated-pod.yaml
-
-kubectl logs vault-integrated-pod
+5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal InRelease' is no longer signed.
+5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
+5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal-updates/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
+5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal-updates InRelease' is no longer signed.
+5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal-backports/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
+5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal-backports InRelease' is no longer signed.
+------
+Dockerfile:57
+--------------------
+  55 |     
+  56 |     # Time zone...
+  57 | >>> RUN apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+  58 |     
+  59 |     # Locale...
+--------------------
+ERROR: failed to solve: process "/bin/sh -c apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata" did not complete successfully: exit code: 100

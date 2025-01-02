@@ -1,36 +1,46 @@
-#9 [final 2/6] RUN apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
-#9 2.332 Get:8 http://security.ubuntu.com/ubuntu focal-security/multiverse amd64 Packages [30.9 kB]
-#9 2.520 Reading package lists...
-#9 5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal InRelease' is no longer signed.
-#9 5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
-#9 5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal-updates/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
-#9 5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal-updates InRelease' is no longer signed.
-#9 5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal-backports/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
-#9 5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal-backports InRelease' is no longer signed.
-#9 ERROR: process "/bin/sh -c apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata" did not complete successfully: exit code: 100
+    - name: Sonarqube End
+      env:
+        SONAR_HOST_URL: "https://sonar.optum.com"
+        SONAR_TOKEN: ${{ secrets.sonar_token }}
+        GITHUB_TOKEN: ${{ secrets.gh_token }}
+      run: |
+        set -o pipefail
+        dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN" | tee /dev/fd/2 sonar.out
+        RESULT="$?"
+        if [ "$RESULT" != "0" ]; then
+          echo "Failed to stop sonar scanning!" >> "$GITHUB_STEP_SUMMARY"
+          exit "$RESULT"
+        fi
+        SCAN_URL=$(grep -o -e "$SONAR_HOST_URL\S*" sonar.out | head -n 1)
+        rm sonar.out
+        echo "Sonar scan results available at <$SCAN_URL>" >> "$GITHUB_STEP_SUMMARY"
+      shell: bash
 
-#16 [build 7/9] RUN dotnet restore src/Vpay.Api.RestApi/Vpay.Api.RestApi.csproj
-#16 0.864   Determining projects to restore...
-#16 CANCELED
-------
- > [final 2/6] RUN apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata:
-1.447 Get:6 http://security.ubuntu.com/ubuntu focal-security/universe amd64 Packages [1296 kB]
-1.672 Get:7 http://security.ubuntu.com/ubuntu focal-security/main amd64 Packages [4157 kB]
-2.332 Get:8 http://security.ubuntu.com/ubuntu focal-security/multiverse amd64 Packages [30.9 kB]
-
-5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal InRelease' is no longer signed.
-5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
-5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal-updates/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
-5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal-updates InRelease' is no longer signed.
-5.902 E: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal-backports/InRelease  407  Proxy Authentication Required [IP: 185.125.190.83 80]
-5.902 E: The repository 'http://archive.ubuntu.com/ubuntu focal-backports InRelease' is no longer signed.
-------
-Dockerfile:57
---------------------
-  55 |     
-  56 |     # Time zone...
-  57 | >>> RUN apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
-  58 |     
-  59 |     # Locale...
---------------------
-ERROR: failed to solve: process "/bin/sh -c apt-get update && apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata" did not complete successfully: exit code: 100
+Logs:
+-----
+18:17:35.751 DEBUG: Post-jobs : 
+18:17:35.751 DEBUG: Post-jobs : 
+18:17:35.758 INFO: Analysis total time: 1:42.095 s
+18:17:35.758 INFO: Analysis total time: 1:42.095 s
+18:17:35.760 INFO: ------------------------------------------------------------------------
+18:17:35.760 INFO: ------------------------------------------------------------------------
+18:17:35.760 INFO: EXECUTION SUCCESS
+18:17:35.760 INFO: ------------------------------------------------------------------------
+18:17:35.761 INFO: Total time: 1:50.531s
+18:17:35.760 INFO: EXECUTION SUCCESS
+18:17:35.760 INFO: ------------------------------------------------------------------------
+18:17:35.761 INFO: Total time: 1:50.531s
+18:17:35.830 INFO: Final Memory: 51M/180M
+18:17:35.830 INFO: ------------------------------------------------------------------------
+18:17:35.830 INFO: Final Memory: 51M/180M
+18:17:35.830 INFO: ------------------------------------------------------------------------
+18:17:35.834 DEBUG: Cleanup org.eclipse.jgit.util.FS$FileStoreAttributes$$Lambda$369/0x00007f5d84398a38@79c5460e during JVM shutdown
+18:17:35.834 DEBUG: Cleanup org.eclipse.jgit.util.FS$FileStoreAttributes$$Lambda$369/0x00007f5d84398a38@79c5460e during JVM shutdown
+Process returned exit code 0
+Process returned exit code 0
+The SonarScanner CLI has finished
+The SonarScanner CLI has finished
+18:17:36.193  Post-processing succeeded.
+18:17:36.193  Post-processing succeeded.
+grep: write error: Broken pipe
+Error: Process completed with exit code 2.

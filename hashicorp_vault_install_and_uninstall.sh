@@ -1,6 +1,47 @@
-gitrunner@mo066inflrun05 ~/actions-runner/_work/vpay-abc/vpay-abc/vpay-abc $ansible-playbook /home/gitrunner/playbook_deploy.yaml -i /home/gitrunner/inventory.ini -e "reponame=tpa-abc" -e "dest_dir=/home/bogner/tpa-abc" -e "extra_excludes=" -C -u bogner
+---
+- name: Deploy Application
+  hosts: all
+  become: yes
+  become_user: bogner
+  vars:
+    ansible_python_interpreter: /home/bogner/.pyenv/shims/python  # Ensure this is set to the correct Python interpreter on the remote server
+  tasks:
+    - name: Check if dest_dir exists and is valid on the remote server
+      stat:
+        path: "{{ dest_dir }}"
+      register: dest_dir_status
 
-PLAY [Deploy Application] *************************************************************************************************************************************************
+    - name: Fail if dest_dir is invalid
+      fail:
+        msg: "The destination directory {{ dest_dir }} is not valid. It must be within /home/bogner."
+      when: dest_dir_status.stat.exists == False or not dest_dir | regex_search('^/home/bogner/')
 
-TASK [Gathering Facts] ****************************************************************************************************************************************************
-fatal: [asstglds01.tpa.net]: FAILED! => {"ansible_facts": {}, "changed": false, "failed_modules": {"ansible.legacy.setup": {"failed": true, "module_stderr": "Shared connection to asstglds01.tpa.net closed.\r\n", "module_stdout": "/bin/sh: /root/.pyenv/shims/python: No such file or directory\r\n", "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error", "rc": 127}}, "msg": "The following modules failed to execute: ansible.legacy.setup\n"}
+    - name: Archive old files if dest_dir exists on the remote server
+      shell: |
+        TIMESTAMP=$(date +%H_%M_%S)
+        ARCHIVE_DIR="/SRVFS/bogner/deploymentBackup/{{ inventory_hostname }}/{{ reponame }}/$(date +%Y/%m/%d)/$TIMESTAMP/"
+        
+        # Archive existing files if the directory exists
+        if [ -d "{{ dest_dir }}" ]; then
+          mkdir -p "$ARCHIVE_DIR"
+          cd "{{ dest_dir }}"
+          tar --remove-files --exclude "*.egg-info" -cf "$ARCHIVE_DIR/$TIMESTAMP.tgz" "{{ dest_dir }}/"*
+        fi
+      register: archive_result
+      when: dest_dir_status.stat.exists == True
+
+    - name: Deploy to the remote server
+      copy:
+        src: "{{ reponame }}/"
+        dest: "{{ dest_dir }}"
+        remote_src: yes
+      when: archive_result.changed == False  # If archive did not happen, proceed with deployment
+
+    - name: Restore from archive if deploy fails
+      shell: |
+        cd "$ARCHIVE_DIR"
+        tar -xvf "$TIMESTAMP.tgz"
+        rm "$TIMESTAMP.tgz"
+        mv "$ARCHIVE_DIR"/* "{{ dest_dir }}/"
+      when: archive_result.changed == True
+      failed_when: archive_result.failed

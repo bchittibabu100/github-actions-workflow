@@ -1,151 +1,148 @@
-gitrunner@mo066inflrun05 ~ $ansible -m ping all -i hosts -u bogner
-[WARNING]: Unhandled error in Python interpreter discovery for host asstglds01.tap.net: Expecting value: line 1 column 1 (char 0)
-[WARNING]: Unhandled error in Python interpreter discovery for host asstglds02.tap.net: Expecting value: line 1 column 1 (char 0)
-[WARNING]: Unhandled error in Python interpreter discovery for host asstglbum01.tap.net: Expecting value: line 1 column 1 (char 0)
-[WARNING]: Platform linux on host asstglds02.tap.net is using the discovered Python interpreter at /home/bogner/.pyenv/shims/python3.8, but future installation of
-another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.12/reference_appendices/interpreter_discovery.html for more
-information.
-asstglds02.tap.net | FAILED! => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/home/bogner/.pyenv/shims/python3.8"
-    },
-    "changed": false,
-    "module_stderr": "Shared connection to asstglds02.tap.net closed.\r\n",
-    "module_stdout": "pyenv: python3.8: command not found\r\n\r\nThe `python3.8' command exists in these Python versions:\r\n  3.8.18\r\n\r\nNote: See 'pyenv help global' for tips on allowing both\r\n      python2 and python3 to be found.\r\n",
-    "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-    "rc": 127
-}
-[WARNING]: Platform linux on host asstglds01.tap.net is using the discovered Python interpreter at /home/bogner/.pyenv/shims/python3.8, but future installation of
-another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.12/reference_appendices/interpreter_discovery.html for more
-information.
-asstglds01.tap.net | FAILED! => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/home/bogner/.pyenv/shims/python3.8"
-    },
-    "changed": false,
-    "module_stderr": "Shared connection to asstglds01.tap.net closed.\r\n",
-    "module_stdout": "pyenv: python3.8: command not found\r\n\r\nThe `python3.8' command exists in these Python versions:\r\n  3.8.18\r\n\r\nNote: See 'pyenv help global' for tips on allowing both\r\n      python2 and python3 to be found.\r\n",
-    "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-    "rc": 127
-}
-asstglds03.tap.net | SUCCESS => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/usr/libexec/platform-python"
-    },
-    "changed": false,
-    "ping": "pong"
-}
-[WARNING]: Platform linux on host asstglbum01.tap.net is using the discovered Python interpreter at /home/bogner/.pyenv/shims/python3.8, but future installation of
-another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.12/reference_appendices/interpreter_discovery.html for more
-information.
-asstglbum01.tap.net | FAILED! => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/home/bogner/.pyenv/shims/python3.8"
-    },
-    "changed": false,
-    "module_stderr": "Shared connection to asstglbum01.tap.net closed.\r\n",
-    "module_stdout": "pyenv: python3.8: command not found\r\n\r\nThe `python3.8' command exists in these Python versions:\r\n  3.8.18\r\n\r\nNote: See 'pyenv help global' for tips on allowing both\r\n      python2 and python3 to be found.\r\n",
-    "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-    "rc": 127
-}
-[WARNING]: Unhandled error in Python interpreter discovery for host plprdlds01.tap.net: Expecting value: line 1 column 1 (char 0)
-[WARNING]: Unhandled error in Python interpreter discovery for host plprdlbum02.tap.net: Expecting value: line 1 column 1 (char 0)
-plprdlbum01.tap.net | SUCCESS => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/usr/bin/python"
-    },
-    "changed": false,
-    "ping": "pong"
-}
-[WARNING]: Unhandled error in Python interpreter discovery for host plprdlbum03.tap.net: Expecting value: line 1 column 1 (char 0)
-[WARNING]: Platform linux on host plprdlds01.tap.net is using the discovered Python interpreter at /home/bogner/.pyenv/shims/python3.8, but future installation of
-another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.12/reference_appendices/interpreter_discovery.html for more
-information.
-plprdlds01.tap.net | FAILED! => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/home/bogner/.pyenv/shims/python3.8"
-    },
-    "changed": false,
-    "module_stderr": "Shared connection to plprdlds01.tap.net closed.\r\n",
-    "module_stdout": "pyenv: python3.8: command not found\r\n\r\nThe `python3.8' command exists in these Python versions:\r\n  3.8.18\r\n\r\nNote: See 'pyenv help global' for tips on allowing both\r\n      python2 and python3 to be found.\r\n",
-    "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-    "rc": 127
-}
-[WARNING]: Unhandled error in Python interpreter discovery for host plprdlbum04.tap.net: Expecting value: line 1 column 1 (char 0)
-[WARNING]: Unhandled error in Python interpreter discovery for host plprdlds02.tap.net: Expecting value: line 1 column 1 (char 0)
-[WARNING]: Platform linux on host plprdlbum02.tap.net is using the discovered Python interpreter at /home/bogner/.pyenv/shims/python3.7, but future installation of
-another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.12/reference_appendices/interpreter_discovery.html for more
-information.
-plprdlbum02.tap.net | FAILED! => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/home/bogner/.pyenv/shims/python3.7"
-    },
-    "changed": false,
-    "module_stderr": "Shared connection to plprdlbum02.tap.net closed.\r\n",
-    "module_stdout": "pyenv: python3.7: command not found\r\n\r\nThe `python3.7' command exists in these Python versions:\r\n  3.7.4\r\n\r\n",
-    "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-    "rc": 127
-}
-[WARNING]: Unhandled error in Python interpreter discovery for host plprdlds03.tap.net: Expecting value: line 1 column 1 (char 0)
-[WARNING]: Platform linux on host plprdlds02.tap.net is using the discovered Python interpreter at /home/bogner/.pyenv/shims/python3.8, but future installation of
-another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.12/reference_appendices/interpreter_discovery.html for more
-information.
-plprdlds02.tap.net | FAILED! => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/home/bogner/.pyenv/shims/python3.8"
-    },
-    "changed": false,
-    "module_stderr": "Shared connection to plprdlds02.tap.net closed.\r\n",
-    "module_stdout": "pyenv: python3.8: command not found\r\n\r\nThe `python3.8' command exists in these Python versions:\r\n  3.8.18\r\n\r\nNote: See 'pyenv help global' for tips on allowing both\r\n      python2 and python3 to be found.\r\n",
-    "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-    "rc": 127
-}
-[WARNING]: Platform linux on host plprdlbum04.tap.net is using the discovered Python interpreter at /home/bogner/.pyenv/shims/python3.7, but future installation of
-another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.12/reference_appendices/interpreter_discovery.html for more
-information.
-plprdlbum04.tap.net | FAILED! => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/home/bogner/.pyenv/shims/python3.7"
-    },
-    "changed": false,
-    "module_stderr": "Shared connection to plprdlbum04.tap.net closed.\r\n",
-    "module_stdout": "pyenv: python3.7: command not found\r\n\r\nThe `python3.7' command exists in these Python versions:\r\n  3.7.4\r\n\r\n",
-    "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-    "rc": 127
-}
-[WARNING]: Platform linux on host plprdlbum03.tap.net is using the discovered Python interpreter at /home/bogner/.pyenv/shims/python3.7, but future installation of
-another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.12/reference_appendices/interpreter_discovery.html for more
-information.
-plprdlbum03.tap.net | FAILED! => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/home/bogner/.pyenv/shims/python3.7"
-    },
-    "changed": false,
-    "module_stderr": "Shared connection to plprdlbum03.tap.net closed.\r\n",
-    "module_stdout": "pyenv: python3.7: command not found\r\n\r\nThe `python3.7' command exists in these Python versions:\r\n  3.7.4\r\n\r\n",
-    "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-    "rc": 127
-}
-[WARNING]: Platform linux on host plprdlds03.tap.net is using the discovered Python interpreter at /home/bogner/.pyenv/shims/python3.8, but future installation of
-another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-core/2.12/reference_appendices/interpreter_discovery.html for more
-information.
-plprdlds03.tap.net | FAILED! => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/home/bogner/.pyenv/shims/python3.8"
-    },
-    "changed": false,
-    "module_stderr": "Shared connection to plprdlds03.tap.net closed.\r\n",
-    "module_stdout": "pyenv: python3.8: command not found\r\n\r\nThe `python3.8' command exists in these Python versions:\r\n  3.8.18\r\n\r\nNote: See 'pyenv help global' for tips on allowing both\r\n      python2 and python3 to be found.\r\n",
-    "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-    "rc": 127
-}
-gitrunner@mo066inflrun05 ~ $ansible --version
-ansible [core 2.12.0]
-  config file = None
-  configured module search path = ['/home/gitrunner/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
-  ansible python module location = /usr/lib/python3/dist-packages/ansible
-  ansible collection location = /home/gitrunner/.ansible/collections:/usr/share/ansible/collections
-  executable location = /usr/bin/ansible
-  python version = 3.10.12 (main, Jan 17 2025, 14:35:34) [GCC 11.4.0]
-  jinja version = 3.0.3
-  libyaml = True
+      - name: Deploy To Production
+        if: ${{ inputs.environment == 'Production' }}
+        run: |
+          set -x          
+          function deploy() {
+          
+              local TPA=$1
+              local DEST_DIR=$2
+              local ENVIRONMENT=$3
+              local USERNAME=$4
+              local HOST=$5
+              local TIMESTAMP=`date +%H_%M_%S`
+              local ARCHIVE_DIR="/SRVFS/bogner/deploymentBackup/$HOST/$TPA/`date +%Y/%m/%d/`$TIMESTAMP/"
+          
+              #Make sure DEST_DIR looks correct. We don't want to accidentally delete something were not supposed to
+              if [[ $DEST_DIR =~ /home/bogner/.+ ]]; then
+                  echo "$DEST_DIR passed path checks"
+              else
+                  echo "$DEST_DIR does not look correct. The path needs to be /home/bogner/*"
+                  exit 1
+              fi
+          
+              #Setup directories and archive old files over SSH
+              ssh $USERNAME@$HOST << EOF
+              
+                  #Make directory to deploy to if it doesn't already exist
+                  if [ ! -d $DEST_DIR ]; then
+                      mkdir -p $DEST_DIR;
+                      if [ "\$?" != 0 ]; then
+                          exit 1
+                      fi 
+                  
+                  #If directory does exist, archive what was in it
+                  else 
+                      #Create archive directory directory
+                      mkdir -p $ARCHIVE_DIR;
+                      if [ "\$?" != 0 ]; then
+                          exit 1
+                      fi
+          
+                      cd $DEST_DIR
+                      tar --remove-files \
+                      --exclude "*.egg-info" \
+                      -cf $ARCHIVE_DIR/$TIMESTAMP.tgz $DEST_DIR/*;
+                      if [ "\$?" != 0 ]; then
+                          exit 1
+                      fi
+                  fi
+                  
+          
+          EOF
+              #Exit with failure if archiving didn't succeed
+              if [ "$?" != 0 ]; then
+                  echo "Failed during setup/archiving."
+                  exit 1
+              fi
+          
+              #Deploy to server
+              scp -r  $TPA/* $USERNAME@$HOST:$DEST_DIR;
+              
+              #Restore from archive if deploy fails
+              if [ "$?" != 0 ]; then
+                  echo "Deploying from archive"
+                  ssh $USERNAME@$HOST << EOF
+          
+                      cd $ARCHIVE_DIR;
+                      tar -xvf $TIMESTAMP.tgz;
+                      rm $TIMESTAMP.tgz;
+                      mv $ARCHIVE_DIR/* $DEST_DIR/;
+          EOF
+                  exit 1
+              fi
+              
+          }
+        shell: bash
+
+      - name: Copy files To Staging
+        if: ${{ inputs.environment == 'Staging' }}
+        run: |
+          local TPA=$1
+          local TARGET_DIR=$2
+          local USERNAME=$3
+          local HOST=$4
+          local DEST_DIR=$(sed 's|/home/bogner/|/SRVFS/tpa_configs/|g' <<< $TARGET_DIR)
+          local TPA_LOWER=$(echo "${TPA}" | tr '[:upper:]' '[:lower:]')
+          exclude_nfs=(
+                '835_docs_generator'
+                'bcf_transfer'
+                'brdautosignature'
+                'brdautosignature_py3'
+                'brduploadmonitor'
+                'brduploadmonitor_py3'
+                'client_provider_report'
+                'document_system'
+                'dual_spec_process'
+                'dual_spec_process_py3'
+                'fax_server'
+                'fileinterrogator'
+                'fileinterrogator_py3'
+                'fixed_length_process'
+                'fixed_length_process_py3'
+                'fssi'
+                'fssi_cas'
+                'herring_parser'
+                'heq'
+                'heq_provider_report'
+                'importnonfundedpayment'
+                'importnonfundedpayment_py3'
+                'meta_check_images'
+                'monday_reports'
+                'parser_configs'
+                'pep_file_process'
+                'pep_file_process_py3'
+                'rc'
+                'recon'
+                'red_card'
+                'tigerteam'
+                'transcard'
+                'transfer835'
+                )
+          exclude='0'
+          for i in "${exclude_nfs[@]}"
+          do
+              if [ "$i" == "${TPA_LOWER}" ] ; then
+                  exclude='1'
+              fi
+          done
+        
+            #Copy to NFS
+            if [ $exclude == '0' ]; then
+              ssh $USERNAME@$HOST << EOF
+              
+                  #Make directory to deploy to if it doesn't already exist
+                  if [ ! -d $DEST_DIR ]; then
+                      mkdir -p $DEST_DIR;
+                      if [ "\$?" != 0 ]; then
+                          exit 1
+                      fi
+                  else
+                    rm -r $DEST_DIR/*
+                    if [ "\$?" != 0 ]; then
+                        exit 1
+                    fi
+                  fi
+          EOF
+                scp -r  $TPA/* $USERNAME@$HOST:$DEST_DIR;
+            fi
+        shell: bash

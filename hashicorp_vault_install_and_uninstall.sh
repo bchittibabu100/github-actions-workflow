@@ -10,7 +10,7 @@
     if: ${{ github.event.inputs.env == 'stage' }}
     needs: build
     runs-on:
-      group: vpay-runner-group
+      group: runner-group
     steps:
       - name: Download build artifacts
         run: |

@@ -1,27 +1,6 @@
-      - name: Generate checksum for artifacts
-        run: |
-          tar -czvf saved_artifacts.tgz artifacts
-          original_checksum=`md5sum saved_artifacts.tgz`
-          echo "original_checksum=$original_checksum | cut -d' ' -f 1"  >> $GITHUB_ENV
-          echo $original_checksum
-        shell: bash
-
-  deploy-stage:
-    if: ${{ github.event.inputs.env == 'stage' }}
-    needs: build
-    runs-on:
-      group: runner-group
-    steps:
-      - name: Download build artifacts
-        run: |
-          echo Original_Checksum: ${{ env.original_checksum }}
-          current_checksum=`md5sum saved_artifacts.tgz | cut -d' ' -f 1`
-          echo Current_Checksum: $current_checksum
-          if [ "${{ env.original_checksum }}" == "$current_checksum" ]; then
-            echo "Proceeding with the creation of directory"
-            mkdir saved_atifacts
-            tar -xzvf saved_artifacts.tgz --directory=saved_artifacts
-          else
-            echo "Make sure there are no other builds are in progress."
-          fi
-        shell: bash
+gitrunner@mo066inflrun01 ~/actions-runner/_work/test-generation/test-generation $tar -xzvf saved_artifacts.tgz --directory=saved_artifacts
+tar: saved_artifacts: Cannot open: No such file or directory
+tar: Error is not recoverable: exiting now
+gitrunner@mo066inflrun01 ~/actions-runner/_work/test-generation/test-generation $ll
+-rw-r--r--  1 gitrunner gitrunner 10058695 Feb 13 13:49 saved_artifacts.tgz
+drwxr-xr-x  2 gitrunner gitrunner     4096 Feb 13 13:49 saved_atifacts/

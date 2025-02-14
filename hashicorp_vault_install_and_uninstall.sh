@@ -1,6 +1,4 @@
-gitrunner@mo066inflrun01 ~/actions-runner/_work/test-generation/test-generation $tar -xzvf saved_artifacts.tgz --directory=saved_artifacts
-tar: saved_artifacts: Cannot open: No such file or directory
-tar: Error is not recoverable: exiting now
-gitrunner@mo066inflrun01 ~/actions-runner/_work/test-generation/test-generation $ll
--rw-r--r--  1 gitrunner gitrunner 10058695 Feb 13 13:49 saved_artifacts.tgz
-drwxr-xr-x  2 gitrunner gitrunner     4096 Feb 13 13:49 saved_atifacts/
+Wanted to update timer based on workflow_dispatch input.
+Also Do not want to deploy if the approvals are not in place within updated timer window. Cancel the deployment so that new deployment request can be initiated
+I see people are approving even after timer minutes windows is passed and deployment is going through.
+We wanted to wait and deploy exactly at time same time. only if the required approvals are in place

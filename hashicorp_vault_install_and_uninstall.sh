@@ -3,7 +3,7 @@ gitrunner@mo066inflrun05 ~ $ansible-playbook -i inventory.ini playbook_copy_nfs.
 PLAY [Copy Application to NFS] ********************************************************************************************************************************************
 
 TASK [Ensure extra_excludes is treated as a list] *************************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {
+ok: [asstglds03.test.net] => {
     "msg": "extra_excludes: 123.txt,abc.yaml"
 }
 

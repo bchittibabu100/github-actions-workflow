@@ -6,6 +6,37 @@
     reponame: "{{ reponame }}"
     target_dir: "{{ reponame.split('-')[1] | default('') }}"
     dest_dir: "/SRVFS/tpa_configs/{{ target_dir }}"
+
+  vars_files:
+    - exclude_files.yaml
+
+  tasks:
+    - name: Ensure extra_excludes is treated as a list
+      set_fact:
+        extra_excludes_list: "{{ extra_excludes.split(',') if extra_excludes is string else extra_excludes | default([]) }}"
+
+    - name: Convert exclude_files to a list if not already
+      set_fact:
+        exclude_files_list: "{{ exclude_files | default([]) | list }}"
+
+    - name: Merge exclude_files and extra_excludes
+      set_fact:
+        final_excludes: "{{ exclude_files_list + extra_excludes_list }}"
+
+    - name: Print final_excludes
+      debug:
+        var: final_excludes
+        
+        
+        
+        ---
+- name: Copy Application to NFS
+  hosts: asstglds03.vpayusa.net
+  gather_facts: no
+  vars:
+    reponame: "{{ reponame }}"
+    target_dir: "{{ reponame.split('-')[1] | default('') }}"
+    dest_dir: "/SRVFS/tpa_configs/{{ target_dir }}"
     extra_excludes: "{{ extra_excludes | default('') | split(',') | reject('equalto', '') | list }}"
 
   vars_files:

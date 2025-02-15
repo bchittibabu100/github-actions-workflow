@@ -1,4 +1,32 @@
-gitrunner@mo066inflrun05 ~ $ansible-playbook -i inventory.ini playbook_copy_nfs.yaml -e "repo_name=test-abc" -e "extra_excludes=123.txt,abc.yaml"
+---
+- name: Copy Application to NFS
+  hosts: asstglds03.vpayusa.net
+  gather_facts: no
+  vars:
+    reponame: "{{ reponame }}"
+    target_dir: "{{ reponame.split('-')[1] | default('') }}"
+    dest_dir: "/SRVFS/tpa_configs/{{ target_dir }}"
+    extra_excludes: "{{ extra_excludes | default('') | split(',') | reject('equalto', '') | list }}"
+
+  vars_files:
+    - exclude_files.yaml
+
+  tasks:
+    - name: Ensure extra_excludes is treated as a list
+      debug:
+        msg: "extra_excludes: {{ extra_excludes }}"
+
+    - name: Convert exclude_files to list if not already
+      set_fact:
+        exclude_files: "{{ exclude_files | default([]) | list }}"
+
+    - name: Merge exclude_files and extra_excludes
+      set_fact:
+        final_excludes: "{{ exclude_files + extra_excludes }}"
+
+    - name: Printing final_excludes
+      debug:
+        var: final_excludesgitrunner@mo066inflrun05 ~ $ansible-playbook -i inventory.ini playbook_copy_nfs.yaml -e "repo_name=test-abc" -e "extra_excludes=123.txt,abc.yaml"
 
 PLAY [Copy Application to NFS] ********************************************************************************************************************************************
 

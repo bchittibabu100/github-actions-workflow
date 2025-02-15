@@ -1,7 +1,7 @@
 gitrunner@mo066inflrun05 ~ $cat playbook_copy_nfs.yaml
 ---
 - name: Copy Application to NFS
-  hosts: asstglds03.vpayusa.net
+  hosts: asstglds03.test.net
   gather_facts: no
   vars:
     reponame: "{{ reponame }}"
@@ -40,16 +40,16 @@ gitrunner@mo066inflrun05 ~ $ansible-playbook -i inventory.ini playbook_copy_nfs.
 PLAY [Copy Application to NFS] ********************************************************************************************************************************************
 
 TASK [Ensure extra_excludes is treated as a list] *************************************************************************************************************************
-ok: [asstglds03.vpayusa.net]
+ok: [asstglds03.test.net]
 
 TASK [Convert exclude_files to a list if not already] *********************************************************************************************************************
-ok: [asstglds03.vpayusa.net]
+ok: [asstglds03.test.net]
 
 TASK [Merge exclude_files and extra_excludes] *****************************************************************************************************************************
-ok: [asstglds03.vpayusa.net]
+ok: [asstglds03.test.net]
 
 TASK [Print final_excludes] ***********************************************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {
+ok: [asstglds03.test.net] => {
     "final_excludes": [
         "835_docs_generator",
         "bcf_transfer",
@@ -88,4 +88,4 @@ ok: [asstglds03.vpayusa.net] => {
 }
 
 TASK [Check if repo is in exclude list] ***********************************************************************************************************************************
-fatal: [asstglds03.vpayusa.net]: FAILED! => {"msg": "An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'.
+fatal: [asstglds03.test.net]: FAILED! => {"msg": "An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'.

@@ -1,3 +1,4 @@
+gitrunner@mo066inflrun05 ~ $cat playbook_copy_nfs.yaml
 ---
 - name: Copy Application to NFS
   hosts: asstglds03.vpayusa.net
@@ -26,74 +27,65 @@
     - name: Print final_excludes
       debug:
         var: final_excludes
-        
-        
-        
-        ---
-- name: Copy Application to NFS
-  hosts: asstglds03.vpayusa.net
-  gather_facts: no
-  vars:
-    reponame: "{{ reponame }}"
-    target_dir: "{{ reponame.split('-')[1] | default('') }}"
-    dest_dir: "/SRVFS/tpa_configs/{{ target_dir }}"
-    extra_excludes: "{{ extra_excludes | default('') | split(',') | reject('equalto', '') | list }}"
 
-  vars_files:
-    - exclude_files.yaml
-
-  tasks:
-    - name: Ensure extra_excludes is treated as a list
-      debug:
-        msg: "extra_excludes: {{ extra_excludes }}"
-
-    - name: Convert exclude_files to list if not already
+    - name: Check if repo is in exclude list
       set_fact:
-        exclude_files: "{{ exclude_files | default([]) | list }}"
+        exclude_repo: "{{ reponame | lower in final_excludes }}"
 
-    - name: Merge exclude_files and extra_excludes
-      set_fact:
-        final_excludes: "{{ exclude_files + extra_excludes }}"
-
-    - name: Printing final_excludes
+    - name: Print repo is in exclude list
       debug:
-        var: final_excludesgitrunner@mo066inflrun05 ~ $ansible-playbook -i inventory.ini playbook_copy_nfs.yaml -e "repo_name=test-abc" -e "extra_excludes=123.txt,abc.yaml"
+        var: exclude_repo
+gitrunner@mo066inflrun05 ~ $ansible-playbook -i inventory.ini playbook_copy_nfs.yaml -e "repo_name=test-abc"
 
 PLAY [Copy Application to NFS] ********************************************************************************************************************************************
 
 TASK [Ensure extra_excludes is treated as a list] *************************************************************************************************************************
-ok: [asstglds03.test.net] => {
-    "msg": "extra_excludes: 123.txt,abc.yaml"
-}
+ok: [asstglds03.vpayusa.net]
+
+TASK [Convert exclude_files to a list if not already] *********************************************************************************************************************
+ok: [asstglds03.vpayusa.net]
 
 TASK [Merge exclude_files and extra_excludes] *****************************************************************************************************************************
-fatal: [asstglds03.test.net]: FAILED! => {"msg": "Unexpected templating type error occurred on ({{ exclude_files + extra_excludes }}): can only concatenate list (not \"str\") to list"}
+ok: [asstglds03.vpayusa.net]
 
-PLAY RECAP ****************************************************************************************************************************************************************
-asstglds03.test.net     : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+TASK [Print final_excludes] ***********************************************************************************************************************************************
+ok: [asstglds03.vpayusa.net] => {
+    "final_excludes": [
+        "835_docs_generator",
+        "bcf_transfer",
+        "brdautosignature",
+        "brdautosignature_py3",
+        "brduploadmonitor",
+        "brduploadmonitor_py3",
+        "client_provider_report",
+        "document_system",
+        "dual_spec_process",
+        "dual_spec_process_py3",
+        "fax_server",
+        "fileinterrogator",
+        "fileinterrogator_py3",
+        "fixed_length_process",
+        "fixed_length_process_py3",
+        "fssi",
+        "fssi_cas",
+        "herring_parser",
+        "heq",
+        "heq_provider_report",
+        "importnonfundedpayment",
+        "importnonfundedpayment_py3",
+        "meta_check_images",
+        "monday_reports",
+        "parser_configs",
+        "pep_file_process",
+        "pep_file_process_py3",
+        "rc",
+        "recon",
+        "red_card",
+        "tigerteam",
+        "transcard",
+        "transfer835"
+    ]
+}
 
-gitrunner@mo066inflrun05 ~ $cat playbook_copy_nfs.yaml
----
-- name: Copy Application to NFS
-  hosts: asstglds03.vpayusa.net
-  gather_facts: no
-  vars:
-    reponame: "{{ reponame }}"
-    target_dir: "{{ reponame.split('-')[1] | default('') }}"
-    dest_dir: "/SRVFS/tpa_configs/{{ target_dir }}"
-    extra_excludes: "{{ extra_excludes | default('') | split(',') | select('string') | list }}"
-
-  vars_files:
-    - exclude_files.yaml
-
-  tasks:
-    - name: Ensure extra_excludes is treated as a list
-      debug:
-        msg: "extra_excludes: {{ extra_excludes }}"
-    - name: Merge exclude_files and extra_excludes
-      set_fact:
-        final_excludes: "{{ exclude_files + extra_excludes }}"
-
-    - name: Printing final_excludes
-      debug:
-        var: final_excludes
+TASK [Check if repo is in exclude list] ***********************************************************************************************************************************
+fatal: [asstglds03.vpayusa.net]: FAILED! => {"msg": "An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'. Error was a <class 'ansible.errors.AnsibleError'>, original message: An unhandled exception occurred while templating '{{ reponame }}'.

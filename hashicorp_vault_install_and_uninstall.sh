@@ -1,18 +1,19 @@
-gitrunner@mo066inflrun05 ~ $ansible-playbook -i inventory.ini playbook_copy_nfs.yaml -e "reponame=test-abc"
+gitrunner@mo066inflrun05 ~ $ansible-playbook -i inventory.ini playbook_copy_nfs.yaml -e "reponame=test-abc1" -v
+No config file found; using defaults
 
 PLAY [Copy Application to NFS] ********************************************************************************************************************************************
 
 TASK [Ensure extra_excludes is treated as a list] *************************************************************************************************************************
-ok: [asstglds03.test.net]
+ok: [asstglds03.vpayusa.net] => {"ansible_facts": {"extra_excludes_list": []}, "changed": false}
 
 TASK [Convert exclude_files to a list if not already] *********************************************************************************************************************
-ok: [asstglds03.test.net]
+ok: [asstglds03.vpayusa.net] => {"ansible_facts": {"exclude_files_list": ["835_docs_generator", "bcf_transfer", "brdautosignature", "brdautosignature_py3", "brduploadmonitor", "brduploadmonitor_py3", "client_provider_report", "document_system", "dual_spec_process", "dual_spec_process_py3", "fax_server", "fileinterrogator", "fileinterrogator_py3", "fixed_length_process", "fixed_length_process_py3", "fssi", "fssi_cas", "herring_parser", "heq", "heq_provider_report", "importnonfundedpayment", "importnonfundedpayment_py3", "meta_check_images", "monday_reports", "parser_configs", "pep_file_process", "pep_file_process_py3", "rc", "recon", "red_card", "tigerteam", "transcard", "transfer835"]}, "changed": false}
 
 TASK [Merge exclude_files and extra_excludes] *****************************************************************************************************************************
-ok: [asstglds03.test.net]
+ok: [asstglds03.vpayusa.net] => {"ansible_facts": {"final_excludes": ["835_docs_generator", "bcf_transfer", "brdautosignature", "brdautosignature_py3", "brduploadmonitor", "brduploadmonitor_py3", "client_provider_report", "document_system", "dual_spec_process", "dual_spec_process_py3", "fax_server", "fileinterrogator", "fileinterrogator_py3", "fixed_length_process", "fixed_length_process_py3", "fssi", "fssi_cas", "herring_parser", "heq", "heq_provider_report", "importnonfundedpayment", "importnonfundedpayment_py3", "meta_check_images", "monday_reports", "parser_configs", "pep_file_process", "pep_file_process_py3", "rc", "recon", "red_card", "tigerteam", "transcard", "transfer835"]}, "changed": false}
 
 TASK [Print final_excludes] ***********************************************************************************************************************************************
-ok: [asstglds03.test.net] => {
+ok: [asstglds03.vpayusa.net] => {
     "final_excludes": [
         "835_docs_generator",
         "bcf_transfer",
@@ -51,25 +52,26 @@ ok: [asstglds03.test.net] => {
 }
 
 TASK [Check if repo is in exclude list] ***********************************************************************************************************************************
-ok: [asstglds03.test.net]
+ok: [asstglds03.vpayusa.net] => {"ansible_facts": {"exclude_repo": false}, "changed": false}
 
 TASK [Print repo is in exclude list] **************************************************************************************************************************************
-ok: [asstglds03.test.net] => {
+ok: [asstglds03.vpayusa.net] => {
     "exclude_repo": false
 }
 
 TASK [Ensure destination directory exists] ********************************************************************************************************************************
-fatal: [asstglds03.test.net]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: \n ##     ## ########     ###    ##    ##\n ##     ## ##     ##   ## ##    ##  ##\n ##     ## ##     ##  ##   ##    ####\n ##     ## ########  ##     ##    ##\n  ##   ##  ##        #########    ##\n   ## ##   ##        ##     ##    ##\n    ###    ##        ##     ##    ##\n\n\nNOTICE TO USERS:\n\nTHIS IS A PRIVATE COMPUTER SYSTEM. It is for authorized use only. Users\n(authorized or unauthorized) have no explicit or implicit expectation of\nprivacy.\n\nAny or all uses of this system and all files on this system may be intercepted,\nmonitored, recorded, copied, audited, inspected, and disclosed to authorized\nsite personnel. By using this system, the user consents to such interception,\nmonitoring, recording, copying, auditing, inspection, and disclosure at the\ndiscretion of authorized site personnel.\n\nUnauthorized or improper use of this system may result in administrative\ndisciplinary action and civil and criminal penalties. By continuing to use this\nsystem you indicate your awareness of and consent to these terms and conditions\nof use.\n\nLOG OFF IMMEDIATELY if you do not agree to the conditions stated in this\nwarning.\n\n\ngitrunner@asstglds03.vpayusa.net: Permission denied (publickey,gssapi-keyex,gssapi-with-mic,password).", "unreachable": true}
+ok: [asstglds03.vpayusa.net] => {"changed": false, "gid": 858806941, "group": "smb_stg_service_rw", "mode": "0777", "owner": "smbstlstgapps", "path": "/SRVFS/tpa_configs/abc1", "secontext": "system_u:object_r:cifs_t:s0", "size": 0, "state": "directory", "uid": 858806934}
+
+TASK [Remove existing files in destination directory] *********************************************************************************************************************
+ok: [asstglds03.vpayusa.net] => {"changed": false, "path": "/SRVFS/tpa_configs/abc1/*", "state": "absent"}
 
 PLAY RECAP ****************************************************************************************************************************************************************
-asstglds03.test.net     : ok=6    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0
+asstglds03.vpayusa.net     : ok=8    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 
 gitrunner@mo066inflrun05 ~ $cat playbook_copy_nfs.yaml
 ---
 - name: Copy Application to NFS
-  hosts: asstglds03.test.net
-  become: yes
-  become_user: bogner
+  hosts: asstglds03.vpayusa.net
   gather_facts: no
   vars:
     reponame: "{{ reponame }}"
@@ -105,9 +107,22 @@ gitrunner@mo066inflrun05 ~ $cat playbook_copy_nfs.yaml
         var: exclude_repo
 
     - name: Ensure destination directory exists
-      become: yes
-      become_user: bogner
-      command: mkdir -p "{{ dest_dir }}"
-      args:
-        creates: "{{ dest_dir }}"
+      remote_user: bogner
+      file:
+        path: "{{ dest_dir }}"
+        state: directory
+        mode: '0755'
       when: not exclude_repo
+
+    - name: Remove existing files in destination directory
+      remote_user: bogner
+      file:
+        path: "{{ dest_dir }}/*"
+        state: absent
+      when: not exclude_repo
+
+bogner@asstglds03 /SRVFS/tpa_configs/abc1 $ ll /SRVFS/tpa_configs/abc1/*
+-rwxrwxrwx. 1 smbstlstgapps smb_stg_service_rw 12 Feb 14 23:29 /SRVFS/tpa_configs/abc1/1.txt
+-rwxrwxrwx. 1 smbstlstgapps smb_stg_service_rw 16 Feb 14 23:29 /SRVFS/tpa_configs/abc1/2.txt
+
+Why the folder abc1 not empty ?

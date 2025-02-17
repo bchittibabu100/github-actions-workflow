@@ -1,128 +1,65 @@
-gitrunner@mo066inflrun05 ~ $ansible-playbook -i inventory.ini playbook_copy_nfs.yaml -e "reponame=test-abc1" -v
-No config file found; using defaults
+ARG REGISTRY=jfrog.test.net/plinfharbor
 
-PLAY [Copy Application to NFS] ********************************************************************************************************************************************
 
-TASK [Ensure extra_excludes is treated as a list] *************************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {"ansible_facts": {"extra_excludes_list": []}, "changed": false}
+# FROM ${REGISTRY}/base-images/node:22-alpine AS builder
+# WORKDIR /usr/src/app/angular
+# COPY ./angular/package*.json ./
+# RUN npm config set registry https://repo1.test.com:443/artifactory/api/npm/npm-virtual/ && npm install --build-from-resource
+# COPY ./angular .
+# RUN npm run buildProd
+# artifacts will be in /usr/src/app/loopback/client/**
 
-TASK [Convert exclude_files to a list if not already] *********************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {"ansible_facts": {"exclude_files_list": ["835_docs_generator", "bcf_transfer", "brdautosignature", "brdautosignature_py3", "brduploadmonitor", "brduploadmonitor_py3", "client_provider_report", "document_system", "dual_spec_process", "dual_spec_process_py3", "fax_server", "fileinterrogator", "fileinterrogator_py3", "fixed_length_process", "fixed_length_process_py3", "fssi", "fssi_cas", "herring_parser", "heq", "heq_provider_report", "importnonfundedpayment", "importnonfundedpayment_py3", "meta_check_images", "monday_reports", "parser_configs", "pep_file_process", "pep_file_process_py3", "rc", "recon", "red_card", "tigerteam", "transcard", "transfer835"]}, "changed": false}
 
-TASK [Merge exclude_files and extra_excludes] *****************************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {"ansible_facts": {"final_excludes": ["835_docs_generator", "bcf_transfer", "brdautosignature", "brdautosignature_py3", "brduploadmonitor", "brduploadmonitor_py3", "client_provider_report", "document_system", "dual_spec_process", "dual_spec_process_py3", "fax_server", "fileinterrogator", "fileinterrogator_py3", "fixed_length_process", "fixed_length_process_py3", "fssi", "fssi_cas", "herring_parser", "heq", "heq_provider_report", "importnonfundedpayment", "importnonfundedpayment_py3", "meta_check_images", "monday_reports", "parser_configs", "pep_file_process", "pep_file_process_py3", "rc", "recon", "red_card", "tigerteam", "transcard", "transfer835"]}, "changed": false}
+FROM ${REGISTRY}/base-images/node:16-stretch
+# RUN mkdir -p /usr/src/app \
+#     && chown -R 1000:1000 /usr/src/app
 
-TASK [Print final_excludes] ***********************************************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {
-    "final_excludes": [
-        "835_docs_generator",
-        "bcf_transfer",
-        "brdautosignature",
-        "brdautosignature_py3",
-        "brduploadmonitor",
-        "brduploadmonitor_py3",
-        "client_provider_report",
-        "document_system",
-        "dual_spec_process",
-        "dual_spec_process_py3",
-        "fax_server",
-        "fileinterrogator",
-        "fileinterrogator_py3",
-        "fixed_length_process",
-        "fixed_length_process_py3",
-        "fssi",
-        "fssi_cas",
-        "herring_parser",
-        "heq",
-        "heq_provider_report",
-        "importnonfundedpayment",
-        "importnonfundedpayment_py3",
-        "meta_check_images",
-        "monday_reports",
-        "parser_configs",
-        "pep_file_process",
-        "pep_file_process_py3",
-        "rc",
-        "recon",
-        "red_card",
-        "tigerteam",
-        "transcard",
-        "transfer835"
-    ]
-}
+# Install iseries db driver
+# Install PreRequisite
+WORKDIR /opt/ibm/
 
-TASK [Check if repo is in exclude list] ***********************************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {"ansible_facts": {"exclude_repo": false}, "changed": false}
+# Update stretch repositories. These have been moved to archive.
+# Ref: https://unix.stackexchange.com/questions/743839/apt-get-update-failed-to-fetch-debian-amd64-packages-while-building-dockerfile-f/743843#743843
+RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
+           -e 's|security.debian.org|archive.debian.org/|g' \
+           -e '/stretch-updates/d' /etc/apt/sources.list
 
-TASK [Print repo is in exclude list] **************************************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {
-    "exclude_repo": false
-}
+RUN apt-get clean && \
+  apt-get update && \
+  apt-get install -y build-essential \
+  make \
+  unixodbc \
+  unixodbc-dev \
+	python
+## Install IBM iAccessSeries app package
+RUN mkdir -p /opt/ibm
+COPY ./driver/ibm-iaccess-1.1.0.2-1.0.amd64.deb /opt/ibm/
+RUN dpkg -i *.deb
+RUN apt-get install -f
+COPY ./driver/config/* /etc/
 
-TASK [Ensure destination directory exists] ********************************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {"changed": false, "gid": 858806941, "group": "smb_stg_service_rw", "mode": "0777", "owner": "smbstlstgapps", "path": "/SRVFS/tpa_configs/abc1", "secontext": "system_u:object_r:cifs_t:s0", "size": 0, "state": "directory", "uid": 858806934}
+# Create app directory
+WORKDIR /usr/src/app
 
-TASK [Remove existing files in destination directory] *********************************************************************************************************************
-ok: [asstglds03.vpayusa.net] => {"changed": false, "path": "/SRVFS/tpa_configs/abc1/*", "state": "absent"}
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY ./loopback/package*.json  ./
 
-PLAY RECAP ****************************************************************************************************************************************************************
-asstglds03.vpayusa.net     : ok=8    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+RUN npm config set registry https://repo1.test.com:443/artifactory/api/npm/npm-virtual/ && npm install --build-from-resource
+ 
+# If you are building your code for production
+# RUN npm ci --only=production
 
-gitrunner@mo066inflrun05 ~ $cat playbook_copy_nfs.yaml
----
-- name: Copy Application to NFS
-  hosts: asstglds03.vpayusa.net
-  gather_facts: no
-  vars:
-    reponame: "{{ reponame }}"
-    target_dir: "{{ reponame.split('-')[1] | default('') }}"
-    dest_dir: "/SRVFS/tpa_configs/{{ target_dir }}"
+# Bundle app source
+COPY ./loopback .
+RUN npm run build
+#  COPY --from=builder /usr/src/app/loopback/client ./client
 
-  vars_files:
-    - exclude_files.yaml
+# Make /usr/local/share/ca-certificates writable
+RUN chmod -R 0777 /usr/local/share/ca-certificates
 
-  tasks:
-    - name: Ensure extra_excludes is treated as a list
-      set_fact:
-        extra_excludes_list: "{{ extra_excludes.split(',') if extra_excludes is string else extra_excludes | default([]) }}"
+HEALTHCHECK --interval=60s --timeout=10s --start-period=2m CMD curl -f http://localhost:3000/apiStatus || exit 1
 
-    - name: Convert exclude_files to a list if not already
-      set_fact:
-        exclude_files_list: "{{ exclude_files | default([]) | list }}"
-
-    - name: Merge exclude_files and extra_excludes
-      set_fact:
-        final_excludes: "{{ exclude_files_list + extra_excludes_list }}"
-
-    - name: Print final_excludes
-      debug:
-        var: final_excludes
-
-    - name: Check if repo is in exclude list
-      set_fact:
-        exclude_repo: "{{ reponame | lower in final_excludes }}"
-
-    - name: Print repo is in exclude list
-      debug:
-        var: exclude_repo
-
-    - name: Ensure destination directory exists
-      remote_user: bogner
-      file:
-        path: "{{ dest_dir }}"
-        state: directory
-        mode: '0755'
-      when: not exclude_repo
-
-    - name: Remove existing files in destination directory
-      remote_user: bogner
-      file:
-        path: "{{ dest_dir }}/*"
-        state: absent
-      when: not exclude_repo
-
-bogner@asstglds03 /SRVFS/tpa_configs/abc1 $ ll /SRVFS/tpa_configs/abc1/*
--rwxrwxrwx. 1 smbstlstgapps smb_stg_service_rw 12 Feb 14 23:29 /SRVFS/tpa_configs/abc1/1.txt
--rwxrwxrwx. 1 smbstlstgapps smb_stg_service_rw 16 Feb 14 23:29 /SRVFS/tpa_configs/abc1/2.txt
-
-Why the folder abc1 not empty ?
+EXPOSE 80
+CMD ["npm", "start"]

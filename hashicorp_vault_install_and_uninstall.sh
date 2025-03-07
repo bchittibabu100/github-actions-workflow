@@ -1,1 +1,1 @@
-We are planning to move ahead with jfrog saas instead of locally managed one. Build and deployments are running on github actions workflow, What are the changes needed in my current workflows requires ?
+Here is the image url of the jforg "docker.repo1.swing.com/vp-docker/gateway/api:v1.1.1" and the artifactory location is um-docker. I wanted to copy this image to another artifact location that is um-docker-prod

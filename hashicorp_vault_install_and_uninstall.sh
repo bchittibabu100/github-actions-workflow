@@ -1,311 +1,67 @@
-chatgpt 
-#######################################
-## This Dockerfile requires BuildKit ##
-#######################################
-
-## General arguments
-ARG REGISTRY=docker.repo1.pbc.com/vpay-docker
-ARG DOTNET_RUNTIME_VERSION=8.0.4
-ARG DOTNET_SDK_VERSION=8.0.403
-ARG DOTNET_SDK_VARIANT=jammy
-ARG DOTNET_RUNTIME_VARIANT=jammy-db2
-ARG BASE_SDK_IMAGE=dotnet/sdk
-ARG BASE_RUNTIME_IMAGE=dotnet/aspnet
-
-## Build Stage
-FROM ${REGISTRY}/base-images/${BASE_SDK_IMAGE}:${DOTNET_SDK_VERSION}-${DOTNET_SDK_VARIANT} as build
-
-## Build stage arguments
-ARG CONFIG_PROFILE=Release
-ARG PROJECT_DIR
-ARG PROJECT_NAME
-
-ENV PROJECT=${PROJECT_DIR}/${PROJECT_NAME}.csproj
-WORKDIR /app
-
-COPY .editorconfig \
-    Directory.Build.props \
-    Directory.Build.targets \
-    Directory.Packages.props \
-    nuget.config* \
-    *.sln \
-    ./
-
-## Copy .csproj files into the correct file structure
-SHELL ["/bin/bash", "-O", "globstar", "-c"]
-RUN --mount=target=docker_build_context \
-cd docker_build_context;\
-cp **/*.csproj ../ --parents;
-RUN rm -rf docker_build_context
-SHELL ["/bin/sh", "-c"]
-
-## Restore project
-RUN dotnet restore ${PROJECT}
-## Copy all files if restore succeeds
-COPY . ./
-## Publish project without restoring
-RUN dotnet publish --no-restore -c ${CONFIG_PROFILE} -o /app/out ${PROJECT}
-
-## New stage used to reduce the size of the final image
-FROM ${REGISTRY}/base-images/${BASE_RUNTIME_IMAGE}:${DOTNET_RUNTIME_VERSION}-${DOTNET_RUNTIME_VARIANT} AS final
-## Final stage arguments
-ARG PROJECT_NAME
-
-# Change time zone to central time
-RUN ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
-
-WORKDIR /app
-
-COPY --from=build /app/out .
-ENV ASPNETCORE_URLS=http://+:80
-
-## Create a symlink so we can use exec form entrypoint
-RUN ln -s ${PROJECT_NAME}.dll Entrypoint.dll
-
-ENTRYPOINT [ "dotnet", "Entrypoint.dll" ]
-
-## Optionally add image build time
-ARG IMAGE_BUILD_TIME
-ENV IMAGE_BUILD_TIME ${IMAGE_BUILD_TIME}
-
-
-
-perplexity 
-#######################################
-## This Dockerfile requires BuildKit ##
-#######################################
-
-## General arguments
-ARG REGISTRY=docker.repo1.pbc.com/vpay-docker
-ARG DOTNET_RUNTIME_VERSION=8.0.4
-ARG DOTNET_SDK_VERSION=8.0.403
-ARG DOTNET_SDK_VARIANT=jammy
-ARG DOTNET_RUNTIME_VARIANT=jammy-db2
-ARG BASE_SDK_IMAGE=dotnet/sdk
-ARG BASE_RUNTIME_IMAGE=dotnet/aspnet
-
-## Build Stage
-FROM ${REGISTRY}/base-images/${BASE_SDK_IMAGE}:${DOTNET_SDK_VERSION}-${DOTNET_SDK_VARIANT} as build
-
-## Build stage arguments
-ARG CONFIG_PROFILE=Release
-ARG PROJECT_DIR
-ARG PROJECT_NAME
-
-ENV PROJECT=${PROJECT_DIR}/${PROJECT_NAME}.csproj
-WORKDIR /app
-
-COPY .editorconfig \
-    Directory.Build.props \
-    Directory.Build.targets \
-    Directory.Packages.props \
-    nuget.config* \
-    *.sln \
-    ./
-
-## Copy .csproj files into the correct file structure
-SHELL ["/bin/bash", "-O", "globstar", "-c"]
-RUN --mount=target=docker_build_context \
-cd docker_build_context;\
-cp **/*.csproj ../ --parents;
-RUN rm -rf docker_build_context
-SHELL ["/bin/sh", "-c"]
-
-## Restore project and ensure dependency upgrades for security fixes
-RUN dotnet add package Refit --version 8.0.0 \
-    && dotnet add package Azure.Identity --version 1.10.2 \
-    && dotnet restore ${PROJECT}
-
-## Copy all files if restore succeeds
-COPY . ./
-## Publish project without restoring
-RUN dotnet publish --no-restore -c ${CONFIG_PROFILE} -o /app/out ${PROJECT}
-
-## New stage used to reduce the size of the final image
-FROM ${REGISTRY}/base-images/${BASE_RUNTIME_IMAGE}:${DOTNET_RUNTIME_VERSION}-${DOTNET_RUNTIME_VARIANT} AS final
-
-# Upgrade system libraries to address vulnerabilities
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libnghttp2-14=1.40.0-1ubuntu0.2 \
-    libsqlite3-0=3.31.1-4ubuntu0.6 \
-    libssl1.1=1.1.1f-1ubuntu2.23 && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-## Final stage arguments
-ARG PROJECT_NAME
-
-# Change time zone to central time
-RUN ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
-
-WORKDIR /app
-
-COPY --from=build /app/out .
-ENV ASPNETCORE_URLS=http://+:80
-
-## Create a symlink so we can use exec form entrypoint
-RUN ln -s ${PROJECT_NAME}.dll Entrypoint.dll
-
-ENTRYPOINT [ "dotnet", "Entrypoint.dll" ]
-
-## Optionally add image build time
-ARG IMAGE_BUILD_TIME
-ENV IMAGE_BUILD_TIME ${IMAGE_BUILD_TIME}
-
-Gemini 
-#######################################
-## This Dockerfile requires BuildKit ##
-#######################################
-
-## General arguments
-ARG REGISTRY=docker.repo1.pbc.com/vpay-docker
-ARG DOTNET_RUNTIME_VERSION=8.0.4
-ARG DOTNET_SDK_VERSION=8.0.403
-ARG DOTNET_SDK_VARIANT=jammy
-ARG DOTNET_RUNTIME_VARIANT=jammy-db2
-ARG BASE_SDK_IMAGE=dotnet/sdk
-ARG BASE_RUNTIME_IMAGE=dotnet/aspnet
-
-## Build Stage
-FROM ${REGISTRY}/base-images/${BASE_SDK_IMAGE}:${DOTNET_SDK_VERSION}-${DOTNET_SDK_VARIANT} as build
-
-## Build stage arguments
-ARG CONFIG_PROFILE=Release
-ARG PROJECT_DIR
-ARG PROJECT_NAME
-
-ENV PROJECT=${PROJECT_DIR}/${PROJECT_NAME}.csproj
-WORKDIR /app
-
-COPY .editorconfig \
-    Directory.Build.props \
-    Directory.Build.targets \
-    Directory.Packages.props \
-    nuget.config* \
-    *.sln \
-    ./
-
-## Copy .csproj files into the correct file structure
-SHELL ["/bin/bash", "-O", "globstar", "-c"]
-RUN --mount=target=docker_build_context \
-cd docker_build_context;\
-cp **/*.csproj ../ --parents;
-RUN rm -rf docker_build_context
-SHELL ["/bin/sh", "-c"]
-
-## Restore project
-RUN dotnet restore ${PROJECT}
-
-# Update refit and azure.identity packages.
-RUN dotnet add ${PROJECT} package Refit --version 7.2.22
-RUN dotnet add ${PROJECT} package Azure.Identity --version 1.10.2
-
-## Copy all files if restore succeeds
-COPY . ./
-## Publish project without restoring
-RUN dotnet publish --no-restore -c ${CONFIG_PROFILE} -o /app/out ${PROJECT}
-
-## New stage used to reduce the size of the final image
-FROM ${REGISTRY}/base-images/${BASE_RUNTIME_IMAGE}:${DOTNET_RUNTIME_VERSION}-${DOTNET_RUNTIME_VARIANT} AS final
-## Final stage arguments
-ARG PROJECT_NAME
-
-# Change time zone to central time
-RUN ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
-
-WORKDIR /app
-
-# Update Ubuntu packages to address libnghttp2-14, libsqlite3-0, and libssl1.1 vulnerabilities.
-RUN apt-get update && apt-get upgrade -y && apt-get clean
-
-COPY --from=build /app/out .
-ENV ASPNETCORE_URLS=http://+:80
-
-## Create a symlink so we can use exec form entrypoint
-RUN ln -s ${PROJECT_NAME}.dll Entrypoint.dll
-
-ENTRYPOINT [ "dotnet", "Entrypoint.dll" ]
-
-## Optionally add image build time
-ARG IMAGE_BUILD_TIME
-ENV IMAGE_BUILD_TIME ${IMAGE_BUILD_TIME}
-
-
-deepseek 
-#######################################
-## This Dockerfile requires BuildKit ##
-#######################################
-
-## General arguments
-ARG REGISTRY=docker.repo1.pbc.com/vpay-docker
-ARG DOTNET_RUNTIME_VERSION=8.0.4
-ARG DOTNET_SDK_VERSION=8.0.403
-ARG DOTNET_SDK_VARIANT=jammy
-ARG DOTNET_RUNTIME_VARIANT=jammy-db2
-ARG BASE_SDK_IMAGE=dotnet/sdk
-ARG BASE_RUNTIME_IMAGE=dotnet/aspnet
-
-## Build Stage
-FROM ${REGISTRY}/base-images/${BASE_SDK_IMAGE}:${DOTNET_SDK_VERSION}-${DOTNET_SDK_VARIANT} as build
-
-## Build stage arguments
-ARG CONFIG_PROFILE=Release
-ARG PROJECT_DIR
-ARG PROJECT_NAME
-
-ENV PROJECT=${PROJECT_DIR}/${PROJECT_NAME}.csproj
-WORKDIR /app
-
-COPY .editorconfig \
-    Directory.Build.props \
-    Directory.Build.targets \
-    Directory.Packages.props \
-    nuget.config* \
-    *.sln \
-    ./
-
-## Copy .csproj files into the correct file structure
-SHELL ["/bin/bash", "-O", "globstar", "-c"]
-RUN --mount=target=docker_build_context \
-cd docker_build_context;\
-cp **/*.csproj ../ --parents;
-RUN rm -rf docker_build_context
-SHELL ["/bin/sh", "-c"]
-
-## Restore project
-RUN dotnet restore ${PROJECT}
-## Copy all files if restore succeeds
-COPY . ./
-## Publish project without restoring
-RUN dotnet publish --no-restore -c ${CONFIG_PROFILE} -o /app/out ${PROJECT}
-
-## New stage used to reduce the size of the final image
-FROM ${REGISTRY}/base-images/${BASE_RUNTIME_IMAGE}:${DOTNET_RUNTIME_VERSION}-${DOTNET_RUNTIME_VARIANT} AS final
-## Final stage arguments
-ARG PROJECT_NAME
-
-# Change time zone to central time
-RUN ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
-
-# Update and upgrade the system to fix vulnerabilities
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-    libnghttp2-14=1.40.0-1ubuntu0.2 \
-    libsqlite3-0=3.31.1-4ubuntu0.6 \
-    libssl1.1=1.1.1f-1ubuntu2.23 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-COPY --from=build /app/out .
-ENV ASPNETCORE_URLS=http://+:80
-
-## Create a symlink so we can use exec form entrypoint
-RUN ln -s ${PROJECT_NAME}.dll Entrypoint.dll
-
-ENTRYPOINT [ "dotnet", "Entrypoint.dll" ]
-
-## Optionally add image build time
-ARG IMAGE_BUILD_TIME
-ENV IMAGE_BUILD_TIME ${IMAGE_BUILD_TIME}
+kubernetes metrics scraper
+
+9 Vulnerabilities
+
+Last Scan Status 
+9.1
+CVE-2024-45337
+Locked
+High
+golang.org/x/crypto:0.0.0-20190222235706-ffb98f73852f
+0.31.0
+CWE-1395 (+1)
+9.8
+CVE-2023-29404
+Locked
+High
+github.com/golang/go:1.13.15
+1.19.10, 1.20.5
+CWE-94
+9.8
+CVE-2023-29405
+Locked
+High
+github.com/golang/go:1.13.15
+1.19.10, 1.20.5
+CWE-74
+9.8
+CVE-2023-24540
+Locked
+Medium
+github.com/golang/go:1.13.15
+1.19.9, 1.20.4
+NVD-CWE-noinfo
+9.8
+CVE-2023-24538
+Locked
+Medium
+github.com/golang/go:1.13.15
+1.19.8, 1.20.3
+CWE-94
+9.1
+CVE-2022-23806
+Locked
+Medium
+github.com/golang/go:1.13.15
+1.16.14, 1.17.7
+CWE-252
+9.8
+CVE-2021-38297
+Locked
+Medium
+github.com/golang/go:1.13.15
+1.16.9, 1.17.2
+CWE-120
+9.8
+CVE-2023-29402
+Locked
+Low
+github.com/golang/go:1.13.15
+1.19.10, 1.20.5
+CWE-94
+9.8
+CVE-2024-24790
+Locked
+github.com/golang/go:1.13.15
+1.21.11, 1.22.4
+NVD-CWE-noinfo (+1)

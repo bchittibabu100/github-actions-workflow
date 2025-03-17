@@ -1,81 +1,33 @@
-Here is the list of vulnerabilities from "bitnami/redis/6.0.9-debian-10-r66" image
+name: Pull and upload images
+on: [push, workflow_dispatch]
 
-28 Vulnerabilities
+jobs:
+  pull-and-upload: 
+    runs-on: thg-runner
+      
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-Last Scan Status 
-9.8
-CVE-2019-14809
-Locked
-Low
-github.com/golang/go:1.9.7
-1.11.13, 1.12.8
-NVD-CWE-noinfo
-9.8
-CVE-2019-8457
-Locked
-Low
-debian:buster:libdb5.3:5.3.28+dfsg1-0.5
-5.3.28+dfsg1-0.9
-CWE-125
-9.8
-CVE-2023-29402
-Locked
-Low
-github.com/golang/go:1.13.10
-1.19.10, 1.20.5
-CWE-94
-9.8
-CVE-2022-32221
-Locked
-Low
-debian:buster:libcurl4:7.64.0-4+deb10u1
-7.64.0-4+deb10u4
-CWE-668
-9.8
-CVE-2024-24790
-Locked
-github.com/golang/go:1.13.10
-1.21.11, 1.22.4
-NVD-CWE-noinfo (+1)
-9.8
-CVE-2022-29155
-Locked
-debian:buster:libldap-common:2.4.47+dfsg-3+deb10u4
-2.4.47+dfsg-3+deb10u7
-CWE-89
-9.8
-CVE-2022-23218
-Locked
-debian:buster:libc-bin:2.28-10
-2.28-10+deb10u2
-CWE-120
-9.8
-CVE-2022-23219
-Locked
-debian:buster:libc6:2.28-10
-2.28-10+deb10u2
-CWE-120
-9.8
-CVE-2021-3711
-Locked
-debian:buster:libssl1.1:1.1.1d-0+deb10u4
-1.1.1d-0+deb10u7
-CWE-120
-9.1
-CVE-2021-35942
-Locked
-debian:buster:libc-bin:2.28-10
-2.28-10+deb10u2
-CWE-190
-9.8
-CVE-2021-3520
-Locked
-debian:buster:liblz4-1:1.8.3-1
-1.8.3-1+deb10u1
-CWE-190
-9.8
-CVE-2021-20232
-Locked
-debian:buster:libgnutls30:3.6.7-4+deb10u5
-3.6.7-4+deb10u7
-CWE-416
+      - name: Login to Docker Container Registery
+        uses: docker/login-action@v3
+        with:
+          registry: "docker.repo1.vhc.com"
+          username: ${{ vars.PMNTS_DEVOPS_MSA }}
+          password: ${{ secrets.PMNTS_DEVOPS_MSA_PWD }}
+        
+      - name: Build and Push Docker Image
+        run: |
+          docker pull docker.repo1.vhc.com/redis:7.4.2
+          docker tag redis:7.4.2 docker.repo1.vhc.com/vay-docker/base-images/redis:7.4.2
+          docker push docker.repo1.vhc.com/vay-docker/base-images/redis:7.4.2
+        shell: bash
+        
+
+error logs:
+Run docker pull docker.repo1.vhc.com/redis:7.4.2
+7.4.2: Pulling from redis
+pull access denied for docker.repo1.vhc.com/redis, repository does not exist or may require 'docker login': denied: Artifact download request rejected: library/redis/sha256__7f346df9cd82ade39512e2040acf3583e6af260b98c01fe525020bf89fb82783/manifest.json was not downloaded due to the download blocking policy configured in Xray for docker-hub-cache.
+Error: Process completed with exit code 1.

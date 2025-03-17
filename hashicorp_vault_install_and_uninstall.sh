@@ -1,67 +1,81 @@
-kubernetes metrics scraper
+Here is the list of vulnerabilities from "bitnami/redis/6.0.9-debian-10-r66" image
 
-9 Vulnerabilities
+28 Vulnerabilities
 
 Last Scan Status 
-9.1
-CVE-2024-45337
-Locked
-High
-golang.org/x/crypto:0.0.0-20190222235706-ffb98f73852f
-0.31.0
-CWE-1395 (+1)
 9.8
-CVE-2023-29404
+CVE-2019-14809
 Locked
-High
-github.com/golang/go:1.13.15
-1.19.10, 1.20.5
-CWE-94
-9.8
-CVE-2023-29405
-Locked
-High
-github.com/golang/go:1.13.15
-1.19.10, 1.20.5
-CWE-74
-9.8
-CVE-2023-24540
-Locked
-Medium
-github.com/golang/go:1.13.15
-1.19.9, 1.20.4
+Low
+github.com/golang/go:1.9.7
+1.11.13, 1.12.8
 NVD-CWE-noinfo
 9.8
-CVE-2023-24538
+CVE-2019-8457
 Locked
-Medium
-github.com/golang/go:1.13.15
-1.19.8, 1.20.3
-CWE-94
-9.1
-CVE-2022-23806
-Locked
-Medium
-github.com/golang/go:1.13.15
-1.16.14, 1.17.7
-CWE-252
-9.8
-CVE-2021-38297
-Locked
-Medium
-github.com/golang/go:1.13.15
-1.16.9, 1.17.2
-CWE-120
+Low
+debian:buster:libdb5.3:5.3.28+dfsg1-0.5
+5.3.28+dfsg1-0.9
+CWE-125
 9.8
 CVE-2023-29402
 Locked
 Low
-github.com/golang/go:1.13.15
+github.com/golang/go:1.13.10
 1.19.10, 1.20.5
 CWE-94
 9.8
+CVE-2022-32221
+Locked
+Low
+debian:buster:libcurl4:7.64.0-4+deb10u1
+7.64.0-4+deb10u4
+CWE-668
+9.8
 CVE-2024-24790
 Locked
-github.com/golang/go:1.13.15
+github.com/golang/go:1.13.10
 1.21.11, 1.22.4
 NVD-CWE-noinfo (+1)
+9.8
+CVE-2022-29155
+Locked
+debian:buster:libldap-common:2.4.47+dfsg-3+deb10u4
+2.4.47+dfsg-3+deb10u7
+CWE-89
+9.8
+CVE-2022-23218
+Locked
+debian:buster:libc-bin:2.28-10
+2.28-10+deb10u2
+CWE-120
+9.8
+CVE-2022-23219
+Locked
+debian:buster:libc6:2.28-10
+2.28-10+deb10u2
+CWE-120
+9.8
+CVE-2021-3711
+Locked
+debian:buster:libssl1.1:1.1.1d-0+deb10u4
+1.1.1d-0+deb10u7
+CWE-120
+9.1
+CVE-2021-35942
+Locked
+debian:buster:libc-bin:2.28-10
+2.28-10+deb10u2
+CWE-190
+9.8
+CVE-2021-3520
+Locked
+debian:buster:liblz4-1:1.8.3-1
+1.8.3-1+deb10u1
+CWE-190
+9.8
+CVE-2021-20232
+Locked
+debian:buster:libgnutls30:3.6.7-4+deb10u5
+3.6.7-4+deb10u7
+CWE-416

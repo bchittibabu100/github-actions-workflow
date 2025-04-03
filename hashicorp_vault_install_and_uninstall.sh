@@ -1,29 +1,21 @@
-PS C:\Users\cboya1> powershell -ExecutionPolicy Bypass -File "C:\Users\cboya1\bamboo_backup.ps1" -Verbose
-Unable to find type [System.IO.Compression.ZipFile].
-At C:\Users\cboya1\bamboo_backup.ps1:16 char:1
-+ [System.IO.Compression.ZipFile]::CreateFromDirectory("$BAMBOO_HOME\em ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (System.IO.Compression.ZipFile:TypeName) [], RuntimeException
-    + FullyQualifiedErrorId : TypeNotFound
+$BAMBOO_HOME = "C:\Atlassian\Application Data\Bamboo"
+   $BACKUP_DIR = "C:\BambooConfigBackups"
+   $DATE = Get-Date -Format "yyyyMMdd"
+   $ZIP_PATH = "$BACKUP_DIR\bamboo_configs_$DATE.zip"
 
-Unable to find type [System.IO.Compression.ZipArchiveMode].
-At C:\Users\cboya1\bamboo_backup.ps1:21 char:64
-+ ... File]::Open($ZIP_PATH, [System.IO.Compression.ZipArchiveMode]::Update ...
-+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (System.IO.Compression.ZipArchiveMode:TypeName) [], RuntimeException
-    + FullyQualifiedErrorId : TypeNotFound
+   # Create backup dir if missing
+   if (!(Test-Path $BACKUP_DIR)) { New-Item -ItemType Directory -Path $BACKUP_DIR -Force }
 
-You cannot call a method on a null-valued expression.
-At C:\Users\cboya1\bamboo_backup.ps1:28 char:1
-+ $zipArchive.Dispose()
-+ ~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
+   # Backup only plan/job configs (build.xml files)
+   Compress-Archive -Path `
+     "$BAMBOO_HOME\xml-data\builds\*\build.xml", `
+     "$BAMBOO_HOME\xml-data\builds\*\*\build.xml" `
+     -DestinationPath $ZIP_PATH -Force
 
-Backup created at: C:\Users\cboya1\BambooConfigBackups\bamboo_configs_20250403.zip
-Contents:
-Exception calling "OpenRead" with "1" argument(s): "Could not find file 'C:\Users\cboya1\BambooConfigBackups\bamboo_configs_20250403.zip'."
-At C:\Users\cboya1\bamboo_backup.ps1:33 char:1
-+ [System.IO.Compression.ZipFile]::OpenRead($ZIP_PATH).Entries | Select ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+   # Verify
+   Write-Host "Backup created at: $ZIP_PATH"
+   Get-ChildItem $ZIP_PATH
+
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+   

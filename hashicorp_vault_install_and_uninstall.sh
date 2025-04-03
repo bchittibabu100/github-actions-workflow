@@ -1,33 +1,29 @@
-# Configurations
-$BAMBOO_HOME = "C:\Atlassian\Application Data\Bamboo"
-$BACKUP_DIR = "C:\BambooConfigBackups"
-$DATE = Get-Date -Format "yyyyMMdd"
-$ZIP_PATH = "$BACKUP_DIR\bamboo_configs_$DATE.zip"
+PS C:\Users\cboya1> powershell -ExecutionPolicy Bypass -File "C:\Users\cboya1\bamboo_backup.ps1" -Verbose
+Unable to find type [System.IO.Compression.ZipFile].
+At C:\Users\cboya1\bamboo_backup.ps1:16 char:1
++ [System.IO.Compression.ZipFile]::CreateFromDirectory("$BAMBOO_HOME\em ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.IO.Compression.ZipFile:TypeName) [], RuntimeException
+    + FullyQualifiedErrorId : TypeNotFound
 
-# Create backup directory if it doesn't exist
-if (-not (Test-Path -Path $BACKUP_DIR)) {
-    New-Item -ItemType Directory -Path $BACKUP_DIR -Force | Out-Null
-}
+Unable to find type [System.IO.Compression.ZipArchiveMode].
+At C:\Users\cboya1\bamboo_backup.ps1:21 char:64
++ ... File]::Open($ZIP_PATH, [System.IO.Compression.ZipArchiveMode]::Update ...
++                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.IO.Compression.ZipArchiveMode:TypeName) [], RuntimeException
+    + FullyQualifiedErrorId : TypeNotFound
 
-# Find all plan/job config files (build.xml)
-$ConfigFiles = Get-ChildItem -Path "$BAMBOO_HOME\xml-data\builds" -Recurse -Filter "build.xml"
+You cannot call a method on a null-valued expression.
+At C:\Users\cboya1\bamboo_backup.ps1:28 char:1
++ $zipArchive.Dispose()
++ ~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
 
-# Create a new ZIP file (empty)
-[System.IO.Compression.ZipFile]::CreateFromDirectory("$BAMBOO_HOME\empty_temp_dir", $ZIP_PATH)  # Workaround to create empty ZIP
-Remove-Item "$BAMBOO_HOME\empty_temp_dir" -Recurse -Force -ErrorAction SilentlyContinue
-
-# Add files to ZIP using .NET (works on PS 4.0+)
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-$zipArchive = [System.IO.Compression.ZipFile]::Open($ZIP_PATH, [System.IO.Compression.ZipArchiveMode]::Update)
-
-foreach ($file in $ConfigFiles) {
-    $entryName = $file.FullName.Substring($BAMBOO_HOME.Length + 1)
-    [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zipArchive, $file.FullName, $entryName) | Out-Null
-}
-
-$zipArchive.Dispose()
-
-# Verify backup
-Write-Host "Backup created at: $ZIP_PATH"
-Write-Host "Contents:"
-[System.IO.Compression.ZipFile]::OpenRead($ZIP_PATH).Entries | Select-Object Name
+Backup created at: C:\Users\cboya1\BambooConfigBackups\bamboo_configs_20250403.zip
+Contents:
+Exception calling "OpenRead" with "1" argument(s): "Could not find file 'C:\Users\cboya1\BambooConfigBackups\bamboo_configs_20250403.zip'."
+At C:\Users\cboya1\bamboo_backup.ps1:33 char:1
++ [System.IO.Compression.ZipFile]::OpenRead($ZIP_PATH).Entries | Select ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException

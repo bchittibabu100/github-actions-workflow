@@ -1,5 +1,8 @@
-working one:
-uid=858802771(bamboosa) gid=858800513(domain users) groups=858800513(domain users),858802709(role_it_printpc_user),858802710(right_infrastructure_printpc_user),858802761(role_dev_app_admin),858802762(right_dev_app_admin),858802842(right_production_web_local_admin),858803312(denylogon),858803901(sophosuser),858805106(right_production_bamhc_admin),858805120(right_production_rmq),858805236(stg-admins),858806941(smb_stg_service_rw) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+plprdlas-fax06 ~ # ps -ef | grep -Ei 'sssd|winbind'
+root      45665      1  0 23:01 ?        00:00:00 /usr/sbin/sssd -i --logger=files
+root      45666  45665  0 23:01 ?        00:00:00 /usr/libexec/sssd/sssd_be --domain kpay.net --uid 0 --gid 0 --logger=files
+root      45669  45665  0 23:01 ?        00:00:00 /usr/libexec/sssd/sssd_nss --uid 0 --gid 0 --logger=files
+root      45670  45665  0 23:01 ?        00:00:00 /usr/libexec/sssd/sssd_pam --uid 0 --gid 0 --logger=files
 
-failing one:
-uid=858802771(bamboosa) gid=858800513(domain users) groups=858800513(domain users),858802709(role_it_printpc_user),858802710(right_infrastructure_printpc_user),858802761(role_dev_app_admin),858802762(right_dev_app_admin),858802842(right_production_web_local_admin),858803312(denylogon),858803901(sophosuser),858805106(right_production_bamhc_admin),858805120(right_production_rmq),858805236(stg-admins),858806941(smb_stg_service_rw),858811321 context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+plprdlas-fax06 ~ # auth required pam_access.so
+-bash: auth: command not found

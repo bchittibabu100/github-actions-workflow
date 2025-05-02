@@ -1,64 +1,261 @@
-Here is the config
-==================
-  3 # /etc/sssd/sssd.conf
-  4 #
-  5 # WARNING: This file is managed by Salt. Any changes you make WILL be erased!
-  6 #
-  7 [sssd]
-  8 domains = kPayUSA.net
-  9 config_file_version = 2
- 10 services = nss, pam
- 11
- 12 [domain/kPayUSA.net]
- 13 ad_domain = kPayUSA.net
- 14 krb5_realm = kPAYUSA.NET
- 15 realmd_tags = manages-system joined-with-samba
- 16 cache_credentials = True
- 17 id_provider = ad
- 18 debug_level = 4
- 19 krb5_store_password_if_offline = True
- 20 default_shell = /bin/bash
- 21 ldap_id_mapping = True
- 22 use_fully_qualified_names = False
- 23 fallback_homedir = /home/%u
- 24 access_provider = simple
- 25
- 26 # Only select groups and/or users are allowed to connect to this system
- 27 simple_allow_groups = role_it_linux_admin, role_prd_linux_admin, role_temp_prd_linux_admin, right_prd_linux_ssh
- 28
- 29 dyndns_update = true
- 30 dyndns_refresh_interval = 43200
- 31 dyndns_update_ptr = true
- 32 dyndns_ttl = 3600
- 33 simple_allow_users = ansibleprod@kpayusa.net, ansibledev@kpayusa.net, ansiblestg@kpayusa.net, abadmin@kpayusa.net
- 34
- 35 ### START Salt extra block
- 36 ### END Salt extra block
- 
- 
- service status
- ==============
- plprdlas-fax06 ~ # systemctl status sssd.service
-● sssd.service - System Security Services Daemon
-   Loaded: loaded (/usr/lib/systemd/system/sssd.service; enabled; vendor preset: disabled)
-   Active: active (running) since Fri 2025-04-25 23:36:14 CDT; 1s ago
- Main PID: 48008 (sssd)
-   CGroup: /system.slice/sssd.service
-           ├─48008 /usr/sbin/sssd -i --logger=files
-           ├─48009 /usr/libexec/sssd/sssd_be --domain kPayUSA.net --uid 0 --gid 0 --logger=files
-           ├─48010 /usr/libexec/sssd/sssd_nss --uid 0 --gid 0 --logger=files
-           └─48011 /usr/libexec/sssd/sssd_pam --uid 0 --gid 0 --logger=files
+<?xml version="1.0"?>
 
-Apr 25 23:36:14 plprdlas-fax06.kpayusa.net systemd[1]: Started System Security Services Daemon.
-Apr 25 23:36:14 plprdlas-fax06.kpayusa.net sssd_be[48009]: GSSAPI client step 1
-Apr 25 23:36:14 plprdlas-fax06.kpayusa.net sssd_be[48009]: GSSAPI client step 1
-Apr 25 23:36:14 plprdlas-fax06.kpayusa.net sssd_be[48009]: GSSAPI client step 1
-Apr 25 23:36:14 plprdlas-fax06.kpayusa.net sssd_be[48009]: GSSAPI client step 2
-Apr 25 23:36:14 plprdlas-fax06.kpayusa.net sssd[48008]: ; TSIG error with server: tsig verify failure
-Apr 25 23:36:14 plprdlas-fax06.kpayusa.net sssd[48008]: ; TSIG error with server: tsig verify failure
-Apr 25 23:36:15 plprdlas-fax06.kpayusa.net sssd[48008]: ; TSIG error with server: tsig verify failure
-Apr 25 23:36:15 plprdlas-fax06.kpayusa.net sssd[48008]: ; TSIG error with server: tsig verify failure
-Apr 25 23:36:15 plprdlas-fax06.kpayusa.net sssd[48008]: ; TSIG error with server: tsig verify failure
-plprdlas-fax06 ~ # vim /etc/sssd/sssd.conf
-plprdlas-fax06 ~ # /usr/sbin/sssd --version
-1.16.5
+<!--
+	Common EPS Batch ANT Build Script
+
+	This script will build any of the following batch jobs:
+
+			PPS.*
+			SPP.*
+			meob
+
+	Call this script as follows:
+
+		ant -f build_pps_batch_job.xml -DjobNum=???
+
+			where ??? is the name of the job (i.e. PPS.0006, PPS.3000, etc.)
+
+-->
+
+<project name="EPS_DTSTG_BATCH" default="all" basedir=".">
+
+<target name="init">
+
+	<!-- Properties for local builds. -->
+	<tstamp>
+	  <format property="local.build.timestamp" pattern="yyyyMMdd.HHmmss"/>
+	</tstamp>
+  <property name="anthill.version" value="${local.build.timestamp}"/>
+
+
+	<tstamp>
+		<format property="datestamp" pattern="yyyyMMdd" locale="en" />
+	</tstamp>
+
+	<!-- Directories under source folder -->
+	<property name="srcDir.base" value="../../executable"/>
+
+	<!-- Destination directory -->
+	<property name="destDir.base" value="./dist/EPS_DTSTG_BATCH"/>
+	<!--	<property name="deployDir.base" value="./deploy/${DSTAMP}${TSTAMP}"/> -->
+	<property name="deployDir.base" value="./deploy"/>
+
+	<!-- Directories under source directory -->
+	<property name="commonSrcDir" value="${srcDir.base}/common"/>
+	<property name="ppsJobNumSrcDir" value="${srcDir.base}/${jobNum}"/>
+
+	<!-- Directories under destination directory -->
+	<property name="commonDestDir" value="${destDir.base}/common"/>
+	<property name="ppsJobNumDestDir" value="${destDir.base}/${jobNum}"/>
+
+	<!-- Directories under common directory -->
+	<property name="libDir" value="${commonDestDir}/lib"/>
+
+	<!-- Sub directory names under any of PPS.00* directories -->
+	<property name="archiveDir" value="archive"/>
+	<property name="uniqueDir" value="unique"/>
+	<property name="workDir" value="work"/>
+	<property name="scriptDir" value="script"/>
+	<property name="configDir" value="config"/>
+	<property name="skillsDir" value="skills"/>
+	<property name="meoblibDir" value="lib"/>
+	<property name="jobLibDir" value="lib"/>
+	<property name="dbUtilitiesDir" value="dbUtilities"/>
+	<property name="fileUtilitiesDir" value="fileUtilities"/>
+	<property name="TWS_SIMULATORDir" value="TWS_SIMULATOR"/>
+	<property name="lib_VER2_Dir" value="lib_VER2"/>
+	<property name="jar_VER2_Dir" value="jar_VER2"/>
+	<property name="lib_VER3_Dir" value="lib_VER3"/>
+
+	<property name="ppsJobNumFile" value="${jobNum}-${anthill.version}-${gitRevision}.tar"/>
+
+ 	<available property="destDirPresent" file="${destDir.base}"/>
+
+	<!-- Check for various directories -->
+ 	<available property="uniqueDirPresent" file="${ppsJobNumSrcDir}/unique"/>
+ 	<available property="configDirPresent" file="${ppsJobNumSrcDir}/config"/>
+ 	<available property="skillsDirPresent" file="${ppsJobNumSrcDir}/skills"/>
+	<available property="jobLibDirPresent" file="${ppsJobNumSrcDir}/lib"/>
+	<available property="dbUtilitiesDirPresent" file="${ppsJobNumSrcDir}/dbUtilities"/>
+	<available property="fileUtilitiesDirPresent" file="${ppsJobNumSrcDir}/fileUtilities"/>
+	<available property="TWS_SIMULATORDirPresent" file="${ppsJobNumSrcDir}/TWS_SIMULATOR"/>
+	<available property="lib_VER2_DirPresent" file="${ppsJobNumSrcDir}/lib_VER2"/>
+	<available property="jar_VER2_DirPresent" file="${ppsJobNumSrcDir}/jar_VER2"/>
+	<available property="lib_VER3_DirPresent" file="${ppsJobNumSrcDir}/lib_VER3"/>
+
+
+
+	<antcall target="deleteDestDir"/>
+
+	<mkdir dir="${destDir.base}"/>
+	<mkdir dir="${deployDir.base}"/>
+
+</target>
+
+<target name="deleteDestDir">
+  <delete verbose="true" includeEmptyDirs="true" failOnError="false">
+		<fileset dir="${destDir.base}"/>
+  </delete>
+  <echo message="Deleting from ${deployDir.base}..."/>
+  <delete verbose="true" includeEmptyDirs="true" failOnError="false">
+		<fileset dir="${deployDir.base}"/>
+  </delete>
+</target>
+
+
+
+<target name="copyPPSJobNum_Code" >
+	<echo message="Copy to ${jobNum} Code Files"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}">
+		<fileset dir="${ppsJobNumSrcDir}" includes="*"/>
+	</copy>
+</target>
+
+<target name="copyPPSJobNum_Script" >
+	<echo message="Copy to ${jobNum} Script Files"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${scriptDir}">
+		<fileset dir="${ppsJobNumSrcDir}" includes="*"/>
+	</copy>
+</target>
+
+
+<target name="copyPPSJobNum_Config" if="configDirPresent">
+  <echo message="Copy to config"/>
+  <copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${configDir}">
+	  <fileset dir="${ppsJobNumSrcDir}/${configDir}" includes="**/*"/>
+  </copy>
+</target>
+
+<!-- Copy files to skills folder -->
+<target name="copyPPSJobNum_Skills" if="skillsDirPresent">
+  <echo message="Copy to skills"/>
+  <copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${skillsDir}">
+	  <fileset dir="${ppsJobNumSrcDir}/${skillsDir}" includes="**/*"/>
+  </copy>
+</target>
+
+<!-- Copy files to unique folder -->
+<target name="copyPPSJobNum_Unique" if="uniqueDirPresent">
+	<echo message="Copy to unique"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${uniqueDir}">
+		<fileset dir="${ppsJobNumSrcDir}/${uniqueDir}" includes="**/*"/>
+	</copy>
+</target>
+
+<!-- Copy files to dbUtilities folder -->
+<target name="copyPPSJobNum_dbUtilities" if="dbUtilitiesDirPresent">
+	<echo message="Copy to dbUtilities"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${dbUtilitiesDir}">
+		<fileset dir="${ppsJobNumSrcDir}/${dbUtilitiesDir}" includes="**/*"/>
+	</copy>
+</target>
+
+<!-- Copy files to fileUtilities folder -->
+<target name="copyPPSJobNum_fileUtilities" if="fileUtilitiesDirPresent">
+	<echo message="Copy to fileUtilities"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${fileUtilitiesDir}">
+		<fileset dir="${ppsJobNumSrcDir}/${fileUtilitiesDir}" includes="**/*"/>
+	</copy>
+</target>
+
+<!-- Copy files to TWS_SIMULATOR folder -->
+<target name="copyPPSJobNum_TWS_SIMULATOR" if="TWS_SIMULATORDirPresent">
+	<echo message="Copy to TWS_SIMULATOR"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${TWS_SIMULATORDir}">
+		<fileset dir="${ppsJobNumSrcDir}/${TWS_SIMULATORDir}" includes="**/*"/>
+	</copy>
+</target>
+
+<!-- Copy files to a job's lib folder -->
+<target name="copyPPSJobNum_Lib" if="jobLibDirPresent">
+	<echo message="Copy to job's lib"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${jobLibDir}">
+		<fileset dir="${ppsJobNumSrcDir}/${jobLibDir}" includes="**/*"/>
+	</copy>
+</target>
+
+	<!-- Copy files to lib ver2 folder -->
+<target name="copyPPSJobNum_lib_VER2" if="lib_VER2_DirPresent">
+	<echo message="Copy to lib_VER2"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${lib_VER2_Dir}">
+		<fileset dir="${ppsJobNumSrcDir}/${lib_VER2_Dir}" includes="**/*"/>
+	</copy>
+</target>
+
+	<!-- Copy files to jar Ver2 folder -->
+<target name="copyPPSJobNum_jar_VER2" if="jar_VER2_DirPresent">
+	<echo message="Copy to jar_VER2"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${jar_VER2_Dir}">
+		<fileset dir="${ppsJobNumSrcDir}/${jar_VER2_Dir}" includes="**/*"/>
+	</copy>
+</target>
+
+<!-- Copy files to lib ver3 folder -->
+<target name="copyPPSJobNum_lib_VER3" if="lib_VER3_DirPresent">
+	<echo message="Copy to lib_VER3"/>
+	<copy preserveLastModified="true" todir="${ppsJobNumDestDir}/${lib_VER3_Dir}">
+		<fileset dir="${commonSrcDir}/lib_VER3" includes="**/*.jar"/>
+	</copy>
+</target>
+
+<!-- Create $JobNum.tar under destination directory -->
+<target name="PPSJobNumBuildTar">
+  <fixcrlf srcDir="${ppsJobNumDestDir}" eol="lf" eof="remove" excludes="**/*.lnx **/*.jar **/*.jpg **/*.pdf **/*.zip"/>
+  <tar tarfile="${destDir.base}/${ppsJobNumFile}">
+    <tarfileset dir="${ppsJobNumDestDir}" prefix="${jobNum}/">
+    	<include name="**/**"/>
+    </tarfileset>
+  </tar>
+
+  <move file="${destDir.base}/${ppsJobNumFile}" todir="${deployDir.base}"/>
+
+</target>
+
+<!-- Main target for $JobNum -->
+<target name="copyPPSJobNum"> <!--   if="ppsJobNum.exists" > -->
+
+	<tstamp>
+	  <format property="start_target1.timestamp" pattern="dd-MMM-yy HH:mm:ss"/>
+	</tstamp>
+
+  <echo message="Start - copyPPSJobNum(${jobNum}) : ${start_target1.timestamp}"/>
+
+	<echo message="Building Job ${jobNum}..."/>
+
+	<mkdir dir="${ppsJobNumDestDir}"/>
+
+
+	<propertyfile
+	    file="${ppsJobNumDestDir}/ahp_deployed_version.properties"
+	    comment="This job was built by Anthill.">
+	  <entry  key="Deployed.Anthill.Version" value="${anthill.version}"/>
+	  <entry  key="Deployed.Git.Branch" value="${gitBranch}"/>
+	  <entry  key="Deployed.Git.Revision" value="${gitRevision}"/>
+	</propertyfile>
+
+	<antcall target="copyPPSJobNum_Code"/>
+	<antcall target="copyPPSJobNum_Script"/>
+	<antcall target="copyPPSJobNum_Config"/>
+	<antcall target="copyPPSJobNum_Skills"/>
+	<antcall target="copyPPSJobNum_Unique"/>
+	<antcall target="copyPPSJobNum_Lib"/>
+	<antcall target="copyPPSJobNum_fileUtilities"/>
+	<antcall target="copyPPSJobNum_TWS_SIMULATOR"/>
+	<antcall target="copyPPSJobNum_lib_VER2"/>
+	<antcall target="copyPPSJobNum_jar_VER2"/>
+	<antcall target="copyPPSJobNum_lib_VER3"/>
+
+
+  <antcall target="PPSJobNumBuildTar"/>
+  <tstamp>
+    <format property="end_target7.timestamp" pattern="dd-MMM-yy HH:mm:ss"/>
+  </tstamp>
+
+  <echo message="End - copyPPSJobNum(${jobNum}) : ${end_target7.timestamp}"/>
+</target>
+
+
+<target name="build" depends="copyPPSJobNum"/>
+<target name="all" depends="init,build"/>
+
+</project>

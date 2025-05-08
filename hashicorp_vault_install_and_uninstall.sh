@@ -1,76 +1,113 @@
-Failing with below error.
-Error: UPGRADE FAILED: template: remittance-partner-network/templates/bootstrap.yaml:1:3: executing "remittance-partner-network/templates/bootstrap.yaml" at <include "vpay.bootstrap" .>: error calling include: template: remittance-partner-network/charts/helm-gen/templates/_bootstrap.tpl:2:6: executing "vpay.bootstrap" at <include "vpay.bootstrap.apphost" .>: error calling include: template: remittance-partner-network/charts/helm-gen/templates/_bootstrap.tpl:17:3: executing "vpay.bootstrap.apphost" at <include "vpay.util.virtualize" (set $dataVirtualize "generateType" "deployment")>: error calling include: template: remittance-partner-network/charts/helm-gen/templates/_util.tpl:25:49: executing "vpay.util.virtualize" at <deepCopy (pick $.Values $item | values | first)>: error calling deepCopy: reflect: call of reflect.Value.Type on zero Value
+Here is the content of values.yaml
 
-here is the contents of _util.tpl
+chart:
+  virtual:
+    charts:
+      - remittance-partner-network
+    shared:
+      generate:
+        deployment: true
+        service: true
+        ingress: false
+        secret: true
+        configmap: true
+      image:
+        registry: docker.repo1.hello.com/vpay-docker
+        tag: latest
+        pullPolicy: Always
 
-test@plinfldops02 ~/defaul_helm_templates/helm-gen/templates $ cat _util.tpl
-{{- /*
-Merge two YAML templates and output the result
+global:
+  environment:
+    name: dev
 
-This takes an array of three values:
-- the top context
-- the template name of the overrides (destination)
-- the template name of the base (source)
-
-*/ -}}
-{{- define "vpay.util.merge" -}}
-  {{- $top := first . -}}
-  {{- $overrides := fromYaml (include (index . 1) $top) | default (dict) -}}
-  {{- $tpl := fromYaml (include (index . 2) $top) | default (dict) -}}
-  {{- toYaml (merge $overrides $tpl) -}}
-{{- end -}}
-
-{{- define "vpay.util.virtualize" -}}
-  {{- $template := .template -}}
-  {{- $generateType := .generateType -}}
-  {{- $chart := default (dict) .Values.chart -}}
-  {{- $virtual := default (dict) $chart.virtual -}}
-  {{- $vcharts := default (list) $virtual.charts -}}
-  {{- range $item := $vcharts -}}
-    {{- $shared := default (dict) $virtual.shared | deepCopy -}}
-    {{- $app := mergeOverwrite (dict) ($shared) (deepCopy (pick $.Values $item | values | first)) -}}
-    {{- $nameOverride := default $item $app.nameOverride -}}
-    {{- $fullnameOverride := default (printf "%s-%s" $.Release.Name $item) $app.fullnameOverride -}}
-    {{- $nameOverrides := dict "nameOverride" $nameOverride "fullnameOverride" $fullnameOverride -}}
-    {{- $global := ternary (pick $.Values "global") (dict) (empty $.Values.global | not) -}}
-    {{- $values := mergeOverwrite (dict) ($global) ($nameOverrides) ($app) -}}
-    {{- $globalValues := $.Values -}}
-    {{- $root := omit $ "Values" -}}
-    {{- $vchart := set $root "__GlobalValues" $globalValues }}
-    {{- $vchart := set $root "Values" $values }}
-    {{- $generateDict := default (dict) $vchart.Values.generate -}}
-    {{- $shouldGenerate := (get $generateDict $generateType | default false) }}
-    {{- if $shouldGenerate -}}
-      {{- include $template $vchart }}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-
-{{- define "vpay.util.trueenabled" -}}
-  {{- ternary ("true") ("") (or (.) (eq (. | toString) "<nil>")) -}}
-{{- end -}}
-
-{{- define "vpay.util.anymounted.secret" -}}
-  {{- $hasMounted := false -}}
-  {{- range $key, $value := default (dict) . -}}
-    {{- if (include "vpay.util.trueenabled" $value.mount) -}}
-      {{- $hasMounted = true -}}
-    {{- end -}}
-  {{- end -}}
-  {{- ternary ("true") ("") $hasMounted -}}
-{{- end -}}
-
-{{- define "vpay.util.anymounted.share" -}}
-  {{- $hasMounted := false -}}
-  {{- $shares := .shares -}}
-  {{- range $key, $value := default (dict) .mountPoints -}}
-    {{- if (include "vpay.util.trueenabled" (dig $key "enabled" (true) (default (dict) $shares))) }}
-      {{- range $volumeMount := default (list) $value -}}
-        {{- if (include "vpay.util.trueenabled" $volumeMount.mount) -}}
-          {{- $hasMounted = true -}}
-        {{- end -}}
-      {{- end -}}
-    {{- end -}}
-  {{- end -}}
-  {{- ternary ("true") ("") $hasMounted -}}
-{{- end -}}
+rpn-api:
+  enabled: true
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2560Mi
+    limits:
+      cpu: 1000m
+      memory: 2560Mi
+  listeningPort: 8080
+  probes:
+    readiness:
+      endpoint: /actuator/health
+    livesness:
+      endpoint: /actuator/health
+  image:
+    name: optum/opay-remittance-partner-network
+  configMaps:
+    configmap:
+      mount: false
+      type: raw
+      data: |
+        remittance-configs.partner.serviceEndpoint: "one"
+        remittance-configs.partner.sendIndicator: "two"
+        remittance-configs.partner.b2bSendIndicator: "three"
+        remittance-configs.partner.clientKey: "four"
+        remittance-configs.partner.clientKeyValue: "five"
+        remittance-configs.partner.clientSecretKey: "six"
+        remittance-configs.partner.clientSecretKeyValue: "seven"
+        remittance-configs.partner.clientApiKey: "eight"
+        remittance-configs.partner.clientAuthEndpoint: "nine"
+        remittance-configs.partner.scopeValue: "ten"
+  env:
+    NODE_ENV: '{{ .Values.global.environment.name | lower }}'
+    server_environment: '{{ .Values.global.environment.name }}'
+    graylog_level: 'debug'
+    winston_silent_console: 'false'
+    graylog_handle_exceptions: 'true'
+    graylog_facility: remittance-partner-network
+    graylog_servers: '[{"host": "nonprod-syslog.vpayusa.net", "port": 5555}]'
+    injectedVars: |
+      - name: PARTNER_SERVICEENDPOINT
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.serviceEndpoint
+      - name: PARTNER_SEND_INDICATOR
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.sendIndicator
+      - name: PARTNER_B2B_SEND_INDICATOR
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.b2bSendIndicator
+      - name: PARTNER_CLIENTKEY
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.clientKey
+      - name: PARTNER_CLIENTKEYVALUE
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.clientKeyValue
+      - name: PARTNER_CLIENTSECRETKEY
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.clientSecretKey
+      - name: PARTNER_CLIENTSECRETKEYVALUE
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.clientSecretKeyValue
+      - name: PARTNER_CLIENTAPIKEY
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.clientApiKey
+      - name: PARTNER_CLIENTAUTHENDPOINT
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.clientAuthEndpoint
+      - name: PARTNER_SCOPEVALUE
+        valueFrom:
+          configMapKeyRef:
+            name: remittance-partner-network-configmap
+            key: remittance-configs.partner.scopeValue

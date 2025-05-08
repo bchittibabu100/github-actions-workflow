@@ -1,117 +1,41 @@
-chart:
-  virtual:
-    charts:
-      - remittance-partner-network
-    shared:
-      generate:
-        deployment: true
-        service: true
-        ingress: false
-        secret: true
-        configmap: true
-      image:
-        registry: docker.repo1.test.com/vpay-docker
-        tag: latest
-        pullPolicy: Always
+here is the deployment.tpl file for reference.
 
-global:
-  environment:
-    name: dev
+test@plinfldops02 ~/defaul_helm_templates/helm-gen/templates $ cat _deployment.tpl
+{{- define "vpay.deployment.tpl" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+{{ template "vpay.metadata" . }}
+spec:
+  revisionHistoryLimit: {{ default (4) .Values.revisionHistoryLimit }}
+  {{- if (dig "experimentalFeatures" "omitReplicaCount" "enabled" (false) .Values) }}
+    {{- if (.Values.replicas) }}
+      {{- fail "When 'omitReplicaCount' is enabled, you can't provide '.Values.replicas'" }}
+    {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ default ("100%") .Values.maxSurge }}
+      maxUnavailable: {{ default ("0%") .Values.maxUnavailable }}
+  {{- else }}
+    {{- $replicas := ternary (1) (default (0) (int .Values.replicas)) (eq (.Values.replicas | toString) "<nil>") }}
+    {{- $maxSurge := ternary "100%" "50%" (eq $replicas 1) }}
+    {{- $maxUnavailable := ternary "0%" "50%" (eq $replicas 1) }}
+  replicas: {{ $replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ default ($maxSurge) .Values.maxSurge }}
+      maxUnavailable: {{ default ($maxUnavailable) .Values.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{ template "vpay.labels.name" . }}
+      {{ template "vpay.labels.instance" . }}
+  template:
+    {{ include "vpay.podmetaspec.tpl" $ | indent 4 | trim }}
 
-remittance-partner-network:
-  enabled: true
-  resources:
-    requests:
-      cpu: 1000m
-      memory: 2560Mi
-    limits:
-      cpu: 1000m
-      memory: 2560Mi
-  listeningPort: 8080
-  probes:
-    readiness:
-      endpoint: /actuator/health
-    livesness:
-      endpoint: /actuator/health
-  image:
-    name: optum/opay-remittance-partner-network
-  configMaps:
-    configmap:
-      mount: false
-      type: raw
-      data: |
-        remittance-configs.partner.serviceEndpoint: "one"
-        remittance-configs.partner.sendIndicator: "two"
-        remittance-configs.partner.b2bSendIndicator: "three"
-        remittance-configs.partner.clientKey: "four"
-        remittance-configs.partner.clientKeyValue: "five"
-        remittance-configs.partner.clientSecretKey: "six"
-        remittance-configs.partner.clientSecretKeyValue: "seven"
-        remittance-configs.partner.clientApiKey: "eight"
-        remittance-configs.partner.clientAuthEndpoint: "nine"
-        remittance-configs.partner.scopeValue: "ten"
-  env:
-    - name: NODE_ENV
-      value: '{{ .Values.global.environment.name | lower }}'
-    - name: server_environment
-      value: '{{ .Values.global.environment.name }}'
-    - name: graylog_level
-      value: 'debug'
-    - name: winston_silent_console
-      value: 'false'
-    - name: graylog_handle_exceptions
-      value: 'true'
-    - name: graylog_facility
-      value: remittance-partner-network
-    - name: graylog_servers
-      value: '[{"host": "nonprod-syslog.vpayusa.net", "port": 5555}]'
-    - name: PARTNER_SERVICEENDPOINT
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.serviceEndpoint
-    - name: PARTNER_SEND_INDICATOR
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.sendIndicator
-    - name: PARTNER_B2B_SEND_INDICATOR
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.b2bSendIndicator
-    - name: PARTNER_CLIENTKEY
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.clientKey
-    - name: PARTNER_CLIENTKEYVALUE
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.clientKeyValue
-    - name: PARTNER_CLIENTSECRETKEY
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.clientSecretKey
-    - name: PARTNER_CLIENTSECRETKEYVALUE
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.clientSecretKeyValue
-    - name: PARTNER_CLIENTAPIKEY
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.clientApiKey
-    - name: PARTNER_CLIENTAUTHENDPOINT
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.clientAuthEndpoint
-    - name: PARTNER_SCOPEVALUE
-      valueFrom:
-        configMapKeyRef:
-          name: remittance-partner-network-configmap
-          key: remittance-configs.partner.scopeValue
+  {{- if (dig "experimentalFeatures" "horizontalPodAutoscaler" "enabled" (false) .Values) }}
+    {{- include "vpay.horizontalpodautoscaler.tpl" . }}
+  {{- end }}
+{{- end -}}

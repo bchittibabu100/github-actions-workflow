@@ -1,9 +1,12 @@
-ended up getting container env as mentioned below in the pod.
+apiVersion: v2
+name: rpn-partner-network
+description: rpn network
+version: 0.0.1
+dependencies:
+  - name: helm-gen
+    version: v1.2.0
+    repository: https://stlinfharbor.test.net/chartrepo/devops
 
-    - name: PARTNER_B2B_SEND_INDICATOR
-      value: |2
 
-        valueFrom:
-          configMapKeyRef:
-            name: remittance-partner-network-configmap
-            key: remittance-configs.partner.b2bSendIndicator
+This is the content of Chart.yaml and this helm-gen-v1.2.0.tgz exists in current folder where values files exist.
+How can I execute dry-runs locally before running it through github action workflow.

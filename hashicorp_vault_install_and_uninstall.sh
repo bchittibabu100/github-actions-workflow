@@ -1,59 +1,70 @@
-Here is the contents of values.yaml
+{{- /*
+Merge two YAML templates and output the result
 
+This takes an array of three values:
+- the top context
+- the template name of the overrides (destination)
+- the template name of the base (source)
 
-chart:
-  virtual:
-    shared:
-      generate:
-        deployment: true
-        secret: true
-        service: true
-        ingress: true
-      image:
-        registry: docker.repo1.test.com/vpay-docker
-        tag: latest
-        pullPolicy: Always
-      env:
-        ASPNETCORE_ENVIRONMENT: '{{ .Values.global.environment.name }}'
-        DOTNET_ENVIRONMENT: '{{ .Values.global.environment.name }}'
-    charts:
-      - par-process-api
+*/ -}}
+{{- define "vpay.util.merge" -}}
+  {{- $top := first . -}}
+  {{- $overrides := fromYaml (include (index . 1) $top) | default (dict) -}}
+  {{- $tpl := fromYaml (include (index . 2) $top) | default (dict) -}}
+  {{- toYaml (merge $overrides $tpl) -}}
+{{- end -}}
 
-global:
-  parent: 'par-process'
-  environment:
-    name: Development
-    ingress:
-      subdomain: dev.pks.test.net
-nfsShares:
-  enabled: false
+{{- define "vpay.util.virtualize" -}}
+  {{- $template := .template -}}
+  {{- $generateType := .generateType -}}
+  {{- $chart := default (dict) .Values.chart -}}
+  {{- $virtual := default (dict) $chart.virtual -}}
+  {{- $vcharts := default (list) $virtual.charts -}}
+  {{- range $item := $vcharts -}}
+    {{- $shared := default (dict) $virtual.shared | deepCopy -}}
+    {{- $app := mergeOverwrite (dict) ($shared) (deepCopy (pick $.Values $item | values | first)) -}}
+    {{- $nameOverride := default $item $app.nameOverride -}}
+    {{- $fullnameOverride := default (printf "%s-%s" $.Release.Name $item) $app.fullnameOverride -}}
+    {{- $nameOverrides := dict "nameOverride" $nameOverride "fullnameOverride" $fullnameOverride -}}
+    {{- $global := ternary (pick $.Values "global") (dict) (empty $.Values.global | not) -}}
+    {{- $values := mergeOverwrite (dict) ($global) ($nameOverrides) ($app) -}}
+    {{- $globalValues := $.Values -}}
+    {{- $root := omit $ "Values" -}}
+    {{- $vchart := set $root "__GlobalValues" $globalValues }}
+    {{- $vchart := set $root "Values" $values }}
+    {{- $generateDict := default (dict) $vchart.Values.generate -}}
+    {{- $shouldGenerate := (get $generateDict $generateType | default false) }}
+    {{- if $shouldGenerate -}}
+      {{- include $template $vchart }}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 
-par-process-api:
-  enabled: true
-  listeningPort: 80
-  contentRoot: /app
-  generate:
-    ingress: true
-    service: true
-  probes:
-    readiness:
-      endpoint: /api/about
-    liveness:
-      endpoint: /api/about
-  image:
-    name: par-process/par-process-api
-  secrets:
-    appsettings.secure.json:
-      data: {}
-  resources:
-    requests:
-      cpu: 20m
-      memory: 1Gi
-    limits:
-      cpu: 500m
-      memory: 1536Mi
+{{- define "vpay.util.trueenabled" -}}
+  {{- ternary ("true") ("") (or (.) (eq (. | toString) "<nil>")) -}}
+{{- end -}}
 
+{{- define "vpay.util.anymounted.secret" -}}
+  {{- $hasMounted := false -}}
+  {{- range $key, $value := default (dict) . -}}
+    {{- if (include "vpay.util.trueenabled" $value.mount) -}}
+      {{- $hasMounted = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- ternary ("true") ("") $hasMounted -}}
+{{- end -}}
 
-Error:
-template: par-process-api/templates/bootstrap.yaml:1:3: executing "par-process-api/templates/bootstrap.yaml" at <include "vpay.bootstrap" .>: error calling include: template: par-process-api/charts/helm-gen/templates/_bootstrap.tpl:2:6: executing "vpay.bootstrap" at <include "vpay.bootstrap.apphost" .>: error calling include: template: par-process-api/charts/helm-gen/templates/_bootstrap.tpl:17:3: executing "vpay.bootstrap.apphost" at <include "vpay.util.virtualize" (set $dataVirtualize "generateType" "deployment")>: error calling include: template: par-process-api/charts/helm-gen/templates/_util.tpl:25:49: executing "vpay.util.virtualize" at <deepCopy (pick $.Values $item | values | first)>: error calling deepCopy: reflect: call of reflect.Value.Type on zero Value
-2025-06-04T17:30:10.9111051Z ##[error]Process completed with exit code 1.
+{{- define "vpay.util.anymounted.share" -}}
+  {{- $hasMounted := false -}}
+  {{- $shares := .shares -}}
+  {{- range $key, $value := default (dict) .mountPoints -}}
+    {{- if (include "vpay.util.trueenabled" (dig $key "enabled" (true) (default (dict) $shares))) }}
+      {{- range $volumeMount := default (list) $value -}}
+        {{- if (include "vpay.util.trueenabled" $volumeMount.mount) -}}
+          {{- $hasMounted = true -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- ternary ("true") ("") $hasMounted -}}
+{{- end -}}

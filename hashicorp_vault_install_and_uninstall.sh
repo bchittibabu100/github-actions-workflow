@@ -1,5 +1,59 @@
-2025-05-15T02:42:08.195Z [33m[jfxan][0m [1m[31m[ERROR][0m [044df4e265fd3bcb] [exchange_handler:895          ] [analysisRegularRetry-0          ] Worker Analysis id 19 failed to process message error: Analysis worker id 19 failed to process message
- --- at /go/src/jfrog.com/xray/xray/backend/backend/analysis/workers/analysis_worker/analysis_worker.go:275 (AnalysisWorker.ProcessMsg) ---
-Caused by: Analysis worker id 19 failed to process msg --> : {"Method":"scan","Data":{"componentId":"docker://vpay-docker/vpay360/vpay360-report-worker:v2.36.13","checksum":{"md5":"7a33e20f52dc46f7edea02863f283dfe","sha1":"461d697937e1785e17ff61dd3bc07572e3693acd","sha256":"5b38dd1b772453e00dcebcf7aeb92a7271cc2fb9e8a10ad090cddffea8072248"},"create_summary":false,"create_scan_build":false,"file":{"id":2763283051,"name":"/vpay-docker/vpay360/vpay360-report-worker/v2.36.13/manifest.json","path":"default/optum-docker/vpay-docker/vpay360/vpay360-report-worker/v2.36.13/","root_path":"default/optum-docker/vpay-docker/vpay360/vpay360-report-worker/v2.36.13/","parent":"5b38dd1b772453e00dcebcf7aeb92a7271cc2fb9e8a10ad090cddffea8072248","sha256":"5b38dd1b772453e00dcebcf7aeb92a7271cc2fb9e8a10ad090cddffea8072248","sha1":"461d697937e1785e17ff61dd3bc07572e3693acd","md5":"7a33e20f52dc46f7edea02863f283dfe","RealChecksumInfo":{},"created":1747237180,"size":4510,"mimeType":"application/x-docker","componentID":"docker://vpay-docker/vpay360/vpay360-report-worker:v2.36.13","pkgType":"Docker"
- --- at /go/src/jfrog.com/xray/xray/backend/backend/analysis/workers/analysis_worker/analysis_worker.go:407 (AnalysisWorker.ProcessMsgFromAnalysisQueue) ---
-Caused by: runtime error: invalid memory address or nil pointer dereference
+Here is the contents of values.yaml
+
+
+chart:
+  virtual:
+    shared:
+      generate:
+        deployment: true
+        secret: true
+        service: true
+        ingress: true
+      image:
+        registry: docker.repo1.test.com/vpay-docker
+        tag: latest
+        pullPolicy: Always
+      env:
+        ASPNETCORE_ENVIRONMENT: '{{ .Values.global.environment.name }}'
+        DOTNET_ENVIRONMENT: '{{ .Values.global.environment.name }}'
+    charts:
+      - par-process-api
+
+global:
+  parent: 'par-process'
+  environment:
+    name: Development
+    ingress:
+      subdomain: dev.pks.test.net
+nfsShares:
+  enabled: false
+
+par-process-api:
+  enabled: true
+  listeningPort: 80
+  contentRoot: /app
+  generate:
+    ingress: true
+    service: true
+  probes:
+    readiness:
+      endpoint: /api/about
+    liveness:
+      endpoint: /api/about
+  image:
+    name: par-process/par-process-api
+  secrets:
+    appsettings.secure.json:
+      data: {}
+  resources:
+    requests:
+      cpu: 20m
+      memory: 1Gi
+    limits:
+      cpu: 500m
+      memory: 1536Mi
+
+
+Error:
+template: par-process-api/templates/bootstrap.yaml:1:3: executing "par-process-api/templates/bootstrap.yaml" at <include "vpay.bootstrap" .>: error calling include: template: par-process-api/charts/helm-gen/templates/_bootstrap.tpl:2:6: executing "vpay.bootstrap" at <include "vpay.bootstrap.apphost" .>: error calling include: template: par-process-api/charts/helm-gen/templates/_bootstrap.tpl:17:3: executing "vpay.bootstrap.apphost" at <include "vpay.util.virtualize" (set $dataVirtualize "generateType" "deployment")>: error calling include: template: par-process-api/charts/helm-gen/templates/_util.tpl:25:49: executing "vpay.util.virtualize" at <deepCopy (pick $.Values $item | values | first)>: error calling deepCopy: reflect: call of reflect.Value.Type on zero Value
+2025-06-04T17:30:10.9111051Z ##[error]Process completed with exit code 1.

@@ -1,33 +1,13 @@
-helm template par-process-api . -f default-env-dc-values.yaml -f values-stage.yaml -f secret-values.yaml --set chart.virtual.charts={par-process-api} --dry-run
-Error: template: par-process-api/templates/bootstrap.yaml:1:3: executing "par-process-api/templates/bootstrap.yaml" at <include "vpay.bootstrap" .>: error calling include: template: par-process-api/charts/helm-gen/templates/_bootstrap.tpl:2:6: executing "vpay.bootstrap" at <include "vpay.bootstrap.apphost" .>: error calling include: template: par-process-api/charts/helm-gen/templates/_bootstrap.tpl:17:3: executing "vpay.bootstrap.apphost" at <include "vpay.util.virtualize" (set $dataVirtualize "generateType" "deployment")>: error calling include: template: par-process-api/charts/helm-gen/templates/_util.tpl:25:49: executing "vpay.util.virtualize" at <deepCopy (pick $.Values $item | values | first)>: error calling deepCopy: reflect: call of reflect.Value.Type on zero Value
-
-
-default-env-dc-values.yaml file contents:
-global:
-  environment:
-    name: Staging
-    ingress:
-      subdomain: stg.pks.test.net
-      altSubdomains:
-      - plpksstg.vpayusa.net
-chart:
-  virtual:
-    shared:
-      image:
-        registry: docker.repo1.test.com/vpay-docker
-
-
-values-stage.yaml file contents:
-par-process-api:
-  environment:
-    ingress:
-      domains:
-        - par-process-api.stg.test.net
-        
-
-secret-values.yaml file contents:
-par-process-api:
-  # Add your secret fields below. For example:
-  # dbPassword: "<your-database-password>"
-  # apiKey: "<your-api-key>"
-  # secretToken: "<your-secret-token>"
+{
+  "id": "CVE-2024-51501_refit_7.2.1",
+  "shortDescription": {
+    "text": "[CVE-2024-51501] refit 7.2.1"
+  },
+  "help": {
+    "text": "Refit is an automatic type-safe REST library for .NET Core, Xamarin and .NET The various header-related Refit attributes (Header, HeaderCollection and Authorize) are vulnerable to CRLF injection. The way HTTP headers are added to a request is via the `HttpHeaders.TryAddWithoutValidation` method. This method does not check for CRLF characters in the header value. This means that any headers added to a refit request are vulnerable to CRLF-injection. In general, CRLF-injection into a HTTP header (when using HTTP/1.1) means that one can inject additional HTTP headers or smuggle whole HTTP requests. If an application using the Refit library passes a user-controllable value through to a header, then that application becomes vulnerable to CRLF-injection. This is not necessarily a security issue for a command line application like the one above, but if such code were present in a web application then it becomes vulnerable to request splitting (as shown in the PoC) and thus Server Side Request
+    "markdown": "| Severity Score | Direct Dependencies | Fixed Versions     |\n| :---:        |    :----:   |          :---: |\n| 9.8      | `sha256__4110e4a8866f596ee3b4aea66c831f6ba5d5aad4060e17a3d4faaa5670b0f7d5.tar `       | [7.2.22]   |"
+  },
+  "properties": {
+    "security-severity": "9.8"
+  }
+}

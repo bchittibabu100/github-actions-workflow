@@ -25,3 +25,20 @@ Jun 13 00:03:04 stlstglvault1.vpayusa.net vault[114999]: 2025-06-13T00:03:04.700
 Jun 13 00:03:04 stlstglvault1.vpayusa.net systemd[1]: vault.service: Deactivated successfully.
 Jun 13 00:03:04 stlstglvault1.vpayusa.net systemd[1]: Stopped "HashiCorp Vault - A tool for managing secrets".
 stlstglvault1 vault # pgrep -x vault
+
+
+
+stlstglvault1 vault # cat /etc/vault.d/vault.hcl
+# Storage backend
+disable_mlock = true
+ui = true
+cluster_addr  = "http://127.0.0.1:8201"
+api_addr      = "http://127.0.0.1:8200"
+storage "raft" {
+  path = "/opt/data/vault"
+  node_id = "node"
+}
+listener "tcp" {
+  address     = "0.0.0.0:8200"
+  tls_disable = 1
+}

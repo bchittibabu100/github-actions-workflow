@@ -1,7 +1,7 @@
+kubectl apply -f awx-deploy.yaml
 Error from server (BadRequest): error when creating "awx-deploy.yaml": AWX in version "v1beta1" cannot be handled as a AWX: strict decoding error: unknown field "spec.task_node_selector.workload", unknown field "spec.task_tolerations[0].effect", unknown field "spec.task_tolerations[0].key", unknown field "spec.task_tolerations[0].operator", unknown field "spec.task_tolerations[0].value", unknown field "spec.web_node_selector.workload", unknown field "spec.web_tolerations[0].effect", unknown field "spec.web_tolerations[0].key", unknown field "spec.web_tolerations[0].operator", unknown field "spec.web_tolerations[0].value"
 
-current tag:
-2.16.0
+current tag: 2.17.0
 cat awx-deploy.yaml
 ---
 apiVersion: awx.ansible.com/v1beta1

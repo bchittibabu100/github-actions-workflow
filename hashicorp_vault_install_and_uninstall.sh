@@ -1,30 +1,32 @@
-kubectl apply -f awx-deploy.yaml
-Error from server (BadRequest): error when creating "awx-deploy.yaml": AWX in version "v1beta1" cannot be handled as a AWX: strict decoding error: unknown field "spec.task_node_selector.workload", unknown field "spec.task_tolerations[0].effect", unknown field "spec.task_tolerations[0].key", unknown field "spec.task_tolerations[0].operator", unknown field "spec.task_tolerations[0].value", unknown field "spec.web_node_selector.workload", unknown field "spec.web_tolerations[0].effect", unknown field "spec.web_tolerations[0].key", unknown field "spec.web_tolerations[0].operator", unknown field "spec.web_tolerations[0].value"
+kubectl get crd | grep awx                                                                                                                                           ─╯
+awxbackups.awx.ansible.com                                   2025-07-08T00:31:49Z
+awxmeshingresses.awx.ansible.com                             2025-07-08T00:31:49Z
+awxrestores.awx.ansible.com                                  2025-07-08T00:31:50Z
+awxs.awx.ansible.com                                         2025-07-08T00:31:50Z
 
-current tag: 2.17.0
-cat awx-deploy.yaml
----
-apiVersion: awx.ansible.com/v1beta1
-kind: AWX
-metadata:
-  name: awx
-  namespace: awx
-spec:
-  service_type: ClusterIP
-  ingress_type: none
-  postgres_storage_class: managed-premium
-  redis_image: redis:7.0
-  task_node_selector:
-    workload: awx
-  web_node_selector:
-    workload: awx
-  task_tolerations:
-    - key: "awx"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
-  web_tolerations:
-    - key: "awx"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
+ vim awxs.awx.ansible.com_crd.json
+ 
+  "node_selector": {
+    "description": "nodeSelector for the pods",
+    "type": "string"
+  },
+  "nodeport_port": {
+    "description": "Port to use for the nodeport",
+    "type": "integer"
+  },
+
+
+
+  "web_node_selector": {
+    "description": "nodeSelector for the web pods",
+    "type": "string"
+  },
+  "web_readiness_failure_threshold": {
+    "default": 3,
+    "description": "Number of consecutive failure events to identify failure of web pod",
+    "format": "int32",
+    "type": "integer"
+  },
+
+
+  "image": "quay.io/ansible/awx-operator:2.17.0"

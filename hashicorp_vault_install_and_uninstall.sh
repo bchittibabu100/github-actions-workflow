@@ -1,11 +1,24 @@
+cat awx-deploy.yaml                                                                                                                                                  ─╯
+---
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx
+  namespace: awx
+spec:
+  service_type: ClusterIP
+  ingress_type: none
+  postgres_storage_class: managed-premium
+  redis_image: redis:7.0
+  task_node_selector: '{"workload":"awx"}'
+  web_node_selector: '{"workload":"awx"}'
+  task_tolerations: '[{"key":"awx","operator":"Equal","value":"true","effect":"NoSchedule"}]'
+  web_tolerations: '[{"key":"awx","operator":"Equal","value":"true","effect":"NoSchedule"}]'%
+
+
+kubectl describe po -n awx awx-operator-controller-manager-8d74c66f4-btfr8 | grep -A4 Tolerations
+Tolerations:                 node.kubernetes.io/memory-pressure:NoSchedule op=Exists
+                             node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
 Events:
-  Type     Reason             Age                  From                Message
-  ----     ------             ----                 ----                -------
-  Warning  FailedScheduling   36m                  default-scheduler   0/49 nodes are available: 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 32 node(s) had untolerated taint {label: default}, 4 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: elastic}, 5 node(s) had untolerated taint {label: portal}. preemption: 0/49 nodes are available: 49 Preemption is not helpful for scheduling.
-  Warning  FailedScheduling   26m (x2 over 31m)    default-scheduler   0/49 nodes are available: 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 32 node(s) had untolerated taint {label: default}, 4 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: elastic}, 5 node(s) had untolerated taint {label: portal}. preemption: 0/49 nodes are available: 49 Preemption is not helpful for scheduling.
-  Normal   NotTriggerScaleUp  36m                  cluster-autoscaler  pod didn't trigger scale-up: 1 node(s) had untolerated taint {awx: true}, 4 node(s) had untolerated taint {label: default}, 1 node(s) had untolerated taint {label: elastic}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: portal}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 2 node(s) had untolerated taint {CriticalAddonsOnly: true}
-  Normal   NotTriggerScaleUp  82s (x199 over 35m)  cluster-autoscaler  (combined from similar events): pod didn't trigger scale-up: 1 node(s) had untolerated taint {label: elastic}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: portal}, 2 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: default}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 1 node(s) had untolerated taint {awx: true}
-
-
-kubectl get nodes --show-labels | grep awx
-aks-awxpool-33020505-vmss000000     Ready    <none>   4h2m    v1.30.12   agentpool=awxpool,beta.kubernetes.io/arch=arm64,beta.kubernetes.io/instance-type=Standard_D2ps_v6,beta.kubernetes.io/os=linux,failure-domain.beta.kubernetes.io/region=centralus,failure-domain.beta.kubernetes.io/zone=centralus-1,kubernetes.azure.com/agentpool=awxpool,kubernetes.azure.com/cluster=rg-nonprod-hub-centralus-aks,kubernetes.azure.com/consolidated-additional-properties=0698b154-5b76-11f0-85b7-8a57626a993c,kubernetes.azure.com/kubelet-identity-client-id=86101892-0681-46c5-8e18-5823a4e865f3,kubernetes.azure.com/mode=user,kubernetes.azure.com/node-image-version=AKSAzureLinux-V2gen2arm64-202506.16.0,kubernetes.azure.com/nodepool-type=VirtualMachineScaleSets,kubernetes.azure.com/os-sku-requested=AzureLinux,kubernetes.azure.com/os-sku=AzureLinux,kubernetes.azure.com/role=agent,kubernetes.azure.com/storageprofile=managed,kubernetes.azure.com/storagetier=Premium_LRS,kubernetes.io/arch=arm64,kubernetes.io/hostname=aks-awxpool-33020505-vmss000000,kubernetes.io/os=linux,node.kubernetes.io/instance-type=Standard_D2ps_v6,storageprofile=managed,storagetier=Premium_LRS,topology.disk.csi.azure.com/zone=centralus-1,topology.kubernetes.io/region=centralus,topology.kubernetes.io/zone=centralus-1,workload=awx
+  Type     Reason             Age                From                Message

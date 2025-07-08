@@ -1,32 +1,11 @@
-kubectl get crd | grep awx                                                                                                                                           ─╯
-awxbackups.awx.ansible.com                                   2025-07-08T00:31:49Z
-awxmeshingresses.awx.ansible.com                             2025-07-08T00:31:49Z
-awxrestores.awx.ansible.com                                  2025-07-08T00:31:50Z
-awxs.awx.ansible.com                                         2025-07-08T00:31:50Z
-
- vim awxs.awx.ansible.com_crd.json
- 
-  "node_selector": {
-    "description": "nodeSelector for the pods",
-    "type": "string"
-  },
-  "nodeport_port": {
-    "description": "Port to use for the nodeport",
-    "type": "integer"
-  },
+Events:
+  Type     Reason             Age                  From                Message
+  ----     ------             ----                 ----                -------
+  Warning  FailedScheduling   36m                  default-scheduler   0/49 nodes are available: 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 32 node(s) had untolerated taint {label: default}, 4 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: elastic}, 5 node(s) had untolerated taint {label: portal}. preemption: 0/49 nodes are available: 49 Preemption is not helpful for scheduling.
+  Warning  FailedScheduling   26m (x2 over 31m)    default-scheduler   0/49 nodes are available: 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 32 node(s) had untolerated taint {label: default}, 4 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: elastic}, 5 node(s) had untolerated taint {label: portal}. preemption: 0/49 nodes are available: 49 Preemption is not helpful for scheduling.
+  Normal   NotTriggerScaleUp  36m                  cluster-autoscaler  pod didn't trigger scale-up: 1 node(s) had untolerated taint {awx: true}, 4 node(s) had untolerated taint {label: default}, 1 node(s) had untolerated taint {label: elastic}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: portal}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 2 node(s) had untolerated taint {CriticalAddonsOnly: true}
+  Normal   NotTriggerScaleUp  82s (x199 over 35m)  cluster-autoscaler  (combined from similar events): pod didn't trigger scale-up: 1 node(s) had untolerated taint {label: elastic}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: portal}, 2 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: default}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 1 node(s) had untolerated taint {awx: true}
 
 
-
-  "web_node_selector": {
-    "description": "nodeSelector for the web pods",
-    "type": "string"
-  },
-  "web_readiness_failure_threshold": {
-    "default": 3,
-    "description": "Number of consecutive failure events to identify failure of web pod",
-    "format": "int32",
-    "type": "integer"
-  },
-
-
-  "image": "quay.io/ansible/awx-operator:2.17.0"
+kubectl get nodes --show-labels | grep awx
+aks-awxpool-33020505-vmss000000     Ready    <none>   4h2m    v1.30.12   agentpool=awxpool,beta.kubernetes.io/arch=arm64,beta.kubernetes.io/instance-type=Standard_D2ps_v6,beta.kubernetes.io/os=linux,failure-domain.beta.kubernetes.io/region=centralus,failure-domain.beta.kubernetes.io/zone=centralus-1,kubernetes.azure.com/agentpool=awxpool,kubernetes.azure.com/cluster=rg-nonprod-hub-centralus-aks,kubernetes.azure.com/consolidated-additional-properties=0698b154-5b76-11f0-85b7-8a57626a993c,kubernetes.azure.com/kubelet-identity-client-id=86101892-0681-46c5-8e18-5823a4e865f3,kubernetes.azure.com/mode=user,kubernetes.azure.com/node-image-version=AKSAzureLinux-V2gen2arm64-202506.16.0,kubernetes.azure.com/nodepool-type=VirtualMachineScaleSets,kubernetes.azure.com/os-sku-requested=AzureLinux,kubernetes.azure.com/os-sku=AzureLinux,kubernetes.azure.com/role=agent,kubernetes.azure.com/storageprofile=managed,kubernetes.azure.com/storagetier=Premium_LRS,kubernetes.io/arch=arm64,kubernetes.io/hostname=aks-awxpool-33020505-vmss000000,kubernetes.io/os=linux,node.kubernetes.io/instance-type=Standard_D2ps_v6,storageprofile=managed,storagetier=Premium_LRS,topology.disk.csi.azure.com/zone=centralus-1,topology.kubernetes.io/region=centralus,topology.kubernetes.io/zone=centralus-1,workload=awx

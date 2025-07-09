@@ -37,6 +37,11 @@ spec:
     securityContext:
       fsGroup: 26
 
+kubectl patch sts awx-ansible-postgres-15 \
+  -n awx \
+  --type='merge' \
+  -p '{"spec": {"template": {"spec": {"securityContext": {"fsGroup": 26}}}}}'
+
 
 kubectl apply -f awx-deploy.yaml
 

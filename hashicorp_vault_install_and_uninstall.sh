@@ -1,96 +1,262 @@
-╰─ kubectl get awx -n awx                                                                                                                                               ─╯
-NAME   AGE
-awx    12s
+kubectl logs -n awx awx-operator-controller-manager-56d59cbc4-qb25x                                                                                                  ─╯
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"cmd","msg":"Version","Go Version":"go1.20.12","GOOS":"linux","GOARCH":"arm64","ansible-operator":"v1.34.0","commit":"d26c43bf94960d292152862a6685696be33190fb"}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"cmd","msg":"Watching namespaces","namespaces":["awx"]}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"watches","msg":"Environment variable not set; using default value","envVar":"ANSIBLE_VERBOSITY_AWX_AWX_ANSIBLE_COM","default":2}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"watches","msg":"Environment variable not set; using default value","envVar":"ANSIBLE_VERBOSITY_AWXBACKUP_AWX_ANSIBLE_COM","default":2}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"watches","msg":"Environment variable not set; using default value","envVar":"ANSIBLE_VERBOSITY_AWXRESTORE_AWX_ANSIBLE_COM","default":2}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"watches","msg":"Environment variable not set; using default value","envVar":"ANSIBLE_VERBOSITY_AWXMESHINGRESS_AWX_ANSIBLE_COM","default":2}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"ansible-controller","msg":"Watching resource","Options.Group":"awx.ansible.com","Options.Version":"v1beta1","Options.Kind":"AWX"}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"ansible-controller","msg":"Watching resource","Options.Group":"awx.ansible.com","Options.Version":"v1beta1","Options.Kind":"AWXBackup"}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"ansible-controller","msg":"Watching resource","Options.Group":"awx.ansible.com","Options.Version":"v1beta1","Options.Kind":"AWXRestore"}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"ansible-controller","msg":"Watching resource","Options.Group":"awx.ansible.com","Options.Version":"v1alpha1","Options.Kind":"AWXMeshIngress"}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"proxy","msg":"Starting to serve","Address":"127.0.0.1:8888"}
+{"level":"info","ts":"2025-07-09T04:34:43Z","msg":"starting server","kind":"health probe","addr":"[::]:6789"}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"controller-runtime.metrics","msg":"Starting metrics server"}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"controller-runtime.metrics","msg":"Serving metrics server","bindAddress":"127.0.0.1:8080","secure":false}
+{"level":"info","ts":"2025-07-09T04:34:43Z","logger":"apiserver","msg":"Starting to serve metrics listener","Address":"localhost:5050"}
+I0709 04:34:43.101156       7 leaderelection.go:250] attempting to acquire leader lease awx/awx-operator...
+I0709 04:34:44.201281       7 leaderelection.go:260] successfully acquired lease awx/awx-operator
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting EventSource","controller":"awx-controller","source":"kind source: *unstructured.Unstructured"}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting Controller","controller":"awx-controller"}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting EventSource","controller":"awxrestore-controller","source":"kind source: *unstructured.Unstructured"}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting Controller","controller":"awxrestore-controller"}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting EventSource","controller":"awxbackup-controller","source":"kind source: *unstructured.Unstructured"}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting Controller","controller":"awxbackup-controller"}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting EventSource","controller":"awxmeshingress-controller","source":"kind source: *unstructured.Unstructured"}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting Controller","controller":"awxmeshingress-controller"}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting workers","controller":"awx-controller","worker count":2}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting workers","controller":"awxrestore-controller","worker count":2}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting workers","controller":"awxmeshingress-controller","worker count":2}
+{"level":"info","ts":"2025-07-09T04:34:44Z","msg":"Starting workers","controller":"awxbackup-controller","worker count":2}
+{"level":"info","ts":"2025-07-09T04:34:44Z","logger":"KubeAPIWarningLogger","msg":"unknown field \"status.conditions[0].message\""}
+{"level":"info","ts":"2025-07-09T04:34:45Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"6510688001426281687","EventData.Name":"Verify imagePullSecrets"}
 
-╭─    ~/Documents/awx-operator   #2.17.0 *1 !1 ?3 ───────────────────────────────────────────────────────────────────────────────────── ✔  hub-aks ⎈  18:30:14  ─╮
-╰─ kubectl get awx -n awx -o yaml                                                                                                                                       ─╯
-apiVersion: v1
-items:
-- apiVersion: awx.ansible.com/v1beta1
-  kind: AWX
-  metadata:
-    annotations:
-      kubectl.kubernetes.io/last-applied-configuration: |
-        {"apiVersion":"awx.ansible.com/v1beta1","kind":"AWX","metadata":{"annotations":{},"name":"awx","namespace":"awx"},"spec":{"ingress_type":"none","postgres_storage_class":"managed-premium","redis_image":"redis:7.0","service_type":"ClusterIP","task_node_selector":"{\"workload\":\"awx\"}","task_tolerations":"[{\"key\":\"awx\",\"operator\":\"Equal\",\"value\":\"true\",\"effect\":\"NoSchedule\"}]","web_node_selector":"{\"workload\":\"awx\"}","web_tolerations":"[{\"key\":\"awx\",\"operator\":\"Equal\",\"value\":\"true\",\"effect\":\"NoSchedule\"}]"}}
-    creationTimestamp: "2025-07-08T01:30:03Z"
-    generation: 1
-    name: awx
-    namespace: awx
-    resourceVersion: "1463844054"
-    uid: c344dfd7-ac0e-4515-a99a-bae9af7943ac
-  spec:
-    admin_user: admin
-    auto_upgrade: true
-    create_preload_data: true
-    garbage_collect_secrets: false
-    image_pull_policy: IfNotPresent
-    ingress_type: none
-    ipv6_disabled: false
-    loadbalancer_class: ""
-    loadbalancer_ip: ""
-    loadbalancer_port: 80
-    loadbalancer_protocol: http
-    metrics_utility_console_enabled: false
-    metrics_utility_cronjob_gather_schedule: '@hourly'
-    metrics_utility_cronjob_report_schedule: '@monthly'
-    metrics_utility_enabled: false
-    metrics_utility_pvc_claim_size: 5Gi
-    no_log: true
-    postgres_keepalives: true
-    postgres_keepalives_count: 5
-    postgres_keepalives_idle: 5
-    postgres_keepalives_interval: 5
-    postgres_storage_class: managed-premium
-    projects_persistence: false
-    projects_storage_access_mode: ReadWriteMany
-    projects_storage_size: 8Gi
-    redis_image: redis:7.0
-    replicas: 1
-    route_tls_termination_mechanism: Edge
-    service_type: ClusterIP
-    set_self_labels: true
-    task_liveness_failure_threshold: 3
-    task_liveness_initial_delay: 5
-    task_liveness_period: 0
-    task_liveness_timeout: 1
-    task_node_selector: '{"workload":"awx"}'
-    task_privileged: false
-    task_readiness_failure_threshold: 3
-    task_readiness_initial_delay: 20
-    task_readiness_period: 0
-    task_readiness_timeout: 1
-    task_tolerations: '[{"key":"awx","operator":"Equal","value":"true","effect":"NoSchedule"}]'
-    web_liveness_failure_threshold: 3
-    web_liveness_initial_delay: 5
-    web_liveness_period: 0
-    web_liveness_timeout: 1
-    web_node_selector: '{"workload":"awx"}'
-    web_readiness_failure_threshold: 3
-    web_readiness_initial_delay: 20
-    web_readiness_period: 0
-    web_readiness_timeout: 1
-    web_tolerations: '[{"key":"awx","operator":"Equal","value":"true","effect":"NoSchedule"}]'
-kind: List
-metadata:
-  resourceVersion: ""
+--------------------------- Ansible Task StdOut -------------------------------
 
-╭─    ~/Documents/awx-operator   #2.17.0 *1 !1 ?3 ───────────────────────────────────────────────────────────────────────────────────── ✔  hub-aks ⎈  18:30:38  ─╮
-╰─ kubectl get po -n awx                                                                                                                                                ─╯
-NAME                                              READY   STATUS    RESTARTS   AGE
-awx-operator-controller-manager-8d74c66f4-btfr8   0/2     Pending   0          16m
+TASK [Verify imagePullSecrets] *************************************************
+task path: /opt/ansible/playbooks/awx.yml:10
 
-╭─    ~/Documents/awx-operator   #2.17.0 *1 !1 ?3 ───────────────────────────────────────────────────────────────────────────────────── ✔  hub-aks ⎈  18:30:59  ─╮
-╰─ kubectl get events -n awx                                                                                                                                            ─╯
-LAST SEEN   TYPE      REASON              OBJECT                                                 MESSAGE
-59m         Warning   FailedScheduling    pod/awx-operator-controller-manager-8d74c66f4-bjvhd    0/49 nodes are available: 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 32 node(s) had untolerated taint {label: default}, 4 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: elastic}, 5 node(s) had untolerated taint {label: portal}. preemption: 0/49 nodes are available: 49 Preemption is not helpful for scheduling.
-59m         Normal    NotTriggerScaleUp   pod/awx-operator-controller-manager-8d74c66f4-bjvhd    pod didn't trigger scale-up: 1 node(s) had untolerated taint {awx: true}, 4 node(s) had untolerated taint {label: default}, 1 node(s) had untolerated taint {label: elastic}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: portal}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 2 node(s) had untolerated taint {CriticalAddonsOnly: true}
-19m         Normal    NotTriggerScaleUp   pod/awx-operator-controller-manager-8d74c66f4-bjvhd    (combined from similar events): pod didn't trigger scale-up: 4 node(s) had untolerated taint {label: default}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: elastic}, 1 node(s) had untolerated taint {label: portal}, 1 node(s) had untolerated taint {label: jenkins}, 2 node(s) had untolerated taint {CriticalAddonsOnly: true}, 1 node(s) had untolerated taint {label: airflow}
-19m         Warning   FailedScheduling    pod/awx-operator-controller-manager-8d74c66f4-bjvhd    0/49 nodes are available: 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 32 node(s) had untolerated taint {label: default}, 4 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: elastic}, 5 node(s) had untolerated taint {label: portal}. preemption: 0/49 nodes are available: 49 Preemption is not helpful for scheduling.
-16m         Warning   FailedScheduling    pod/awx-operator-controller-manager-8d74c66f4-bjvhd    skip schedule deleting pod: awx/awx-operator-controller-manager-8d74c66f4-bjvhd
-16m         Warning   FailedScheduling    pod/awx-operator-controller-manager-8d74c66f4-btfr8    0/49 nodes are available: 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 32 node(s) had untolerated taint {label: default}, 4 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: elastic}, 5 node(s) had untolerated taint {label: portal}. preemption: 0/49 nodes are available: 49 Preemption is not helpful for scheduling.
-16m         Normal    NotTriggerScaleUp   pod/awx-operator-controller-manager-8d74c66f4-btfr8    pod didn't trigger scale-up: 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: elastic}, 2 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: default}, 1 node(s) had untolerated taint {label: portal}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 1 node(s) had untolerated taint {awx: true}
-83s         Normal    NotTriggerScaleUp   pod/awx-operator-controller-manager-8d74c66f4-btfr8    (combined from similar events): pod didn't trigger scale-up: 1 node(s) had untolerated taint {label: portal}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 2 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: default}, 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: elastic}
-6m31s       Warning   FailedScheduling    pod/awx-operator-controller-manager-8d74c66f4-btfr8    0/49 nodes are available: 1 node(s) had untolerated taint {awx: true}, 1 node(s) had untolerated taint {label: airflow}, 1 node(s) had untolerated taint {label: gen835}, 1 node(s) had untolerated taint {label: jenkins}, 32 node(s) had untolerated taint {label: default}, 4 node(s) had untolerated taint {CriticalAddonsOnly: true}, 4 node(s) had untolerated taint {label: elastic}, 5 node(s) had untolerated taint {label: portal}. preemption: 0/49 nodes are available: 49 Preemption is not helpful for scheduling.
-59m         Normal    SuccessfulCreate    replicaset/awx-operator-controller-manager-8d74c66f4   Created pod: awx-operator-controller-manager-8d74c66f4-bjvhd
-16m         Normal    SuccessfulCreate    replicaset/awx-operator-controller-manager-8d74c66f4   Created pod: awx-operator-controller-manager-8d74c66f4-btfr8
-59m         Normal    ScalingReplicaSet   deployment/awx-operator-controller-manager             Scaled up replica set awx-operator-controller-manager-8d74c66f4 to 1
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:45Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Create imagePullSecret] **************************************************
+task path: /opt/ansible/playbooks/awx.yml:17
+
+-------------------------------------------------------------------------------
+{"level":"info","ts":"2025-07-09T04:34:45Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"6510688001426281687","EventData.Name":"Create imagePullSecret"}
+{"level":"error","ts":"2025-07-09T04:34:46Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"error","ts":"2025-07-09T04:34:46Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*injectOwnerReferenceHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/inject_owner.go:93\ngithub.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:150\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"error","ts":"2025-07-09T04:34:46Z","logger":"logging_event_handler","msg":"","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"runner_on_failed","job":"6510688001426281687","EventData.Task":"Create imagePullSecret","EventData.TaskArgs":"","EventData.FailedTaskPath":"/opt/ansible/playbooks/awx.yml:17","error":"[playbook task failed]","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/events.loggingEventHandler.Handle\n\tansible-operator-plugins/internal/ansible/events/log_events.go:111"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+ TASK [Create imagePullSecret] ********************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "Failed to create object: b'Unable to determine if virtual resource\\n'", "reason": "Internal Server Error"}
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:46Z","logger":"runner","msg":"ansible-playbook [core 2.15.8]\r\n  config file = /etc/ansible/ansible.cfg\r\n  configured module search path = ['/usr/share/ansible/openshift']\r\n  ansible python module location = /usr/local/lib/python3.9/site-packages/ansible\r\n  ansible collection location = /opt/ansible/.ansible/collections:/usr/share/ansible/collections\r\n  executable location = /usr/local/bin/ansible-playbook\r\n  python version = 3.9.18 (main, Sep 22 2023, 18:08:20) [GCC 8.5.0 20210514 (Red Hat 8.5.0-20)] (/usr/bin/python3)\r\n  jinja version = 3.1.3\r\n  libyaml = True\r\nUsing /etc/ansible/ansible.cfg as config file\r\nSkipping callback 'awx_display', as we already have a stdout callback.\nSkipping callback 'default', as we already have a stdout callback.\nSkipping callback 'minimal', as we already have a stdout callback.\nSkipping callback 'oneline', as we already have a stdout callback.\n\r\nPLAYBOOK: awx.yml **************************************************************\n1 plays in /opt/ansible/playbooks/awx.yml\n[WARNING]: Found variable using reserved name: no_log\n\r\nPLAY [localhost] ***************************************************************\n\r\nTASK [Verify imagePullSecrets] *************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:10\nok: [localhost] => {\"censored\": \"the output has been hidden due to the fact that 'no_log: true' was specified for this result\", \"changed\": false}\n\r\nTASK [Create imagePullSecret] **************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:17\nfatal: [localhost]: FAILED! => {\"changed\": false, \"msg\": \"Failed to create object: b'Unable to determine if virtual resource\\\\n'\", \"reason\": \"Internal Server Error\"}\n\r\nPLAY RECAP *********************************************************************\r\nlocalhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   \n","job":"6510688001426281687","name":"awx-demo","namespace":"awx","error":"exit status 2","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/runner.(*runner).Run.func1\n\tansible-operator-plugins/internal/ansible/runner/runner.go:269"}
+
+----- Ansible Task Status Event StdOut (awx.ansible.com/v1beta1, Kind=AWX, awx-demo/awx) -----
+
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+
+----------
+{"level":"info","ts":"2025-07-09T04:34:46Z","logger":"KubeAPIWarningLogger","msg":"unknown field \"status.conditions[1].ansibleResult\""}
+{"level":"info","ts":"2025-07-09T04:34:46Z","logger":"KubeAPIWarningLogger","msg":"unknown field \"status.conditions[1].message\""}
+{"level":"info","ts":"2025-07-09T04:34:46Z","logger":"KubeAPIWarningLogger","msg":"unknown field \"status.conditions[2].message\""}
+{"level":"error","ts":"2025-07-09T04:34:46Z","msg":"Reconciler error","controller":"awx-controller","object":{"name":"awx-demo","namespace":"awx"},"namespace":"awx","name":"awx-demo","reconcileID":"3f1bca7f-4dfd-49f2-b30a-2b248eba68a1","error":"event runner on failed","stacktrace":"sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:329\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:266\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:227"}
+{"level":"info","ts":"2025-07-09T04:34:47Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"1535033963994378494","EventData.Name":"Verify imagePullSecrets"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Verify imagePullSecrets] *************************************************
+task path: /opt/ansible/playbooks/awx.yml:10
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:47Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"info","ts":"2025-07-09T04:34:48Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"1535033963994378494","EventData.Name":"Create imagePullSecret"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Create imagePullSecret] **************************************************
+task path: /opt/ansible/playbooks/awx.yml:17
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:48Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"error","ts":"2025-07-09T04:34:48Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*injectOwnerReferenceHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/inject_owner.go:93\ngithub.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:150\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"error","ts":"2025-07-09T04:34:48Z","logger":"logging_event_handler","msg":"","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"runner_on_failed","job":"1535033963994378494","EventData.Task":"Create imagePullSecret","EventData.TaskArgs":"","EventData.FailedTaskPath":"/opt/ansible/playbooks/awx.yml:17","error":"[playbook task failed]","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/events.loggingEventHandler.Handle\n\tansible-operator-plugins/internal/ansible/events/log_events.go:111"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+ TASK [Create imagePullSecret] ********************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "Failed to create object: b'Unable to determine if virtual resource\\n'", "reason": "Internal Server Error"}
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:48Z","logger":"runner","msg":"ansible-playbook [core 2.15.8]\r\n  config file = /etc/ansible/ansible.cfg\r\n  configured module search path = ['/usr/share/ansible/openshift']\r\n  ansible python module location = /usr/local/lib/python3.9/site-packages/ansible\r\n  ansible collection location = /opt/ansible/.ansible/collections:/usr/share/ansible/collections\r\n  executable location = /usr/local/bin/ansible-playbook\r\n  python version = 3.9.18 (main, Sep 22 2023, 18:08:20) [GCC 8.5.0 20210514 (Red Hat 8.5.0-20)] (/usr/bin/python3)\r\n  jinja version = 3.1.3\r\n  libyaml = True\r\nUsing /etc/ansible/ansible.cfg as config file\r\nSkipping callback 'awx_display', as we already have a stdout callback.\nSkipping callback 'default', as we already have a stdout callback.\nSkipping callback 'minimal', as we already have a stdout callback.\nSkipping callback 'oneline', as we already have a stdout callback.\n\r\nPLAYBOOK: awx.yml **************************************************************\n1 plays in /opt/ansible/playbooks/awx.yml\n[WARNING]: Found variable using reserved name: no_log\n\r\nPLAY [localhost] ***************************************************************\n\r\nTASK [Verify imagePullSecrets] *************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:10\nok: [localhost] => {\"censored\": \"the output has been hidden due to the fact that 'no_log: true' was specified for this result\", \"changed\": false}\n\r\nTASK [Create imagePullSecret] **************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:17\nfatal: [localhost]: FAILED! => {\"changed\": false, \"msg\": \"Failed to create object: b'Unable to determine if virtual resource\\\\n'\", \"reason\": \"Internal Server Error\"}\n\r\nPLAY RECAP *********************************************************************\r\nlocalhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   \n","job":"1535033963994378494","name":"awx-demo","namespace":"awx","error":"exit status 2","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/runner.(*runner).Run.func1\n\tansible-operator-plugins/internal/ansible/runner/runner.go:269"}
+
+----- Ansible Task Status Event StdOut (awx.ansible.com/v1beta1, Kind=AWX, awx-demo/awx) -----
+
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+
+----------
+{"level":"error","ts":"2025-07-09T04:34:48Z","msg":"Reconciler error","controller":"awx-controller","object":{"name":"awx-demo","namespace":"awx"},"namespace":"awx","name":"awx-demo","reconcileID":"a0e579be-6d24-4652-a7fe-0cbd50c52a60","error":"event runner on failed","stacktrace":"sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:329\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:266\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:227"}
+{"level":"info","ts":"2025-07-09T04:34:49Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"762291544430901683","EventData.Name":"Verify imagePullSecrets"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Verify imagePullSecrets] *************************************************
+task path: /opt/ansible/playbooks/awx.yml:10
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:50Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"info","ts":"2025-07-09T04:34:50Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"762291544430901683","EventData.Name":"Create imagePullSecret"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Create imagePullSecret] **************************************************
+task path: /opt/ansible/playbooks/awx.yml:17
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:50Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"error","ts":"2025-07-09T04:34:50Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*injectOwnerReferenceHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/inject_owner.go:93\ngithub.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:150\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"error","ts":"2025-07-09T04:34:51Z","logger":"logging_event_handler","msg":"","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"runner_on_failed","job":"762291544430901683","EventData.Task":"Create imagePullSecret","EventData.TaskArgs":"","EventData.FailedTaskPath":"/opt/ansible/playbooks/awx.yml:17","error":"[playbook task failed]","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/events.loggingEventHandler.Handle\n\tansible-operator-plugins/internal/ansible/events/log_events.go:111"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+ TASK [Create imagePullSecret] ********************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "Failed to create object: b'Unable to determine if virtual resource\\n'", "reason": "Internal Server Error"}
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:51Z","logger":"runner","msg":"ansible-playbook [core 2.15.8]\r\n  config file = /etc/ansible/ansible.cfg\r\n  configured module search path = ['/usr/share/ansible/openshift']\r\n  ansible python module location = /usr/local/lib/python3.9/site-packages/ansible\r\n  ansible collection location = /opt/ansible/.ansible/collections:/usr/share/ansible/collections\r\n  executable location = /usr/local/bin/ansible-playbook\r\n  python version = 3.9.18 (main, Sep 22 2023, 18:08:20) [GCC 8.5.0 20210514 (Red Hat 8.5.0-20)] (/usr/bin/python3)\r\n  jinja version = 3.1.3\r\n  libyaml = True\r\nUsing /etc/ansible/ansible.cfg as config file\r\nSkipping callback 'awx_display', as we already have a stdout callback.\nSkipping callback 'default', as we already have a stdout callback.\nSkipping callback 'minimal', as we already have a stdout callback.\nSkipping callback 'oneline', as we already have a stdout callback.\n\r\nPLAYBOOK: awx.yml **************************************************************\n1 plays in /opt/ansible/playbooks/awx.yml\n[WARNING]: Found variable using reserved name: no_log\n\r\nPLAY [localhost] ***************************************************************\n\r\nTASK [Verify imagePullSecrets] *************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:10\nok: [localhost] => {\"censored\": \"the output has been hidden due to the fact that 'no_log: true' was specified for this result\", \"changed\": false}\n\r\nTASK [Create imagePullSecret] **************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:17\nfatal: [localhost]: FAILED! => {\"changed\": false, \"msg\": \"Failed to create object: b'Unable to determine if virtual resource\\\\n'\", \"reason\": \"Internal Server Error\"}\n\r\nPLAY RECAP *********************************************************************\r\nlocalhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   \n","job":"762291544430901683","name":"awx-demo","namespace":"awx","error":"exit status 2","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/runner.(*runner).Run.func1\n\tansible-operator-plugins/internal/ansible/runner/runner.go:269"}
+
+----- Ansible Task Status Event StdOut (awx.ansible.com/v1beta1, Kind=AWX, awx-demo/awx) -----
+
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+
+----------
+{"level":"error","ts":"2025-07-09T04:34:51Z","msg":"Reconciler error","controller":"awx-controller","object":{"name":"awx-demo","namespace":"awx"},"namespace":"awx","name":"awx-demo","reconcileID":"18410333-069d-4ea1-b600-9b244ceedae1","error":"event runner on failed","stacktrace":"sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:329\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:266\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:227"}
+{"level":"info","ts":"2025-07-09T04:34:51Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"1658216466068658037","EventData.Name":"Verify imagePullSecrets"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Verify imagePullSecrets] *************************************************
+task path: /opt/ansible/playbooks/awx.yml:10
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:52Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Create imagePullSecret] **************************************************
+task path: /opt/ansible/playbooks/awx.yml:17
+
+-------------------------------------------------------------------------------
+{"level":"info","ts":"2025-07-09T04:34:52Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"1658216466068658037","EventData.Name":"Create imagePullSecret"}
+{"level":"error","ts":"2025-07-09T04:34:53Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"error","ts":"2025-07-09T04:34:53Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*injectOwnerReferenceHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/inject_owner.go:93\ngithub.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:150\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+ TASK [Create imagePullSecret] ********************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "Failed to create object: b'Unable to determine if virtual resource\\n'", "reason": "Internal Server Error"}
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:53Z","logger":"logging_event_handler","msg":"","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"runner_on_failed","job":"1658216466068658037","EventData.Task":"Create imagePullSecret","EventData.TaskArgs":"","EventData.FailedTaskPath":"/opt/ansible/playbooks/awx.yml:17","error":"[playbook task failed]","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/events.loggingEventHandler.Handle\n\tansible-operator-plugins/internal/ansible/events/log_events.go:111"}
+{"level":"error","ts":"2025-07-09T04:34:53Z","logger":"runner","msg":"ansible-playbook [core 2.15.8]\r\n  config file = /etc/ansible/ansible.cfg\r\n  configured module search path = ['/usr/share/ansible/openshift']\r\n  ansible python module location = /usr/local/lib/python3.9/site-packages/ansible\r\n  ansible collection location = /opt/ansible/.ansible/collections:/usr/share/ansible/collections\r\n  executable location = /usr/local/bin/ansible-playbook\r\n  python version = 3.9.18 (main, Sep 22 2023, 18:08:20) [GCC 8.5.0 20210514 (Red Hat 8.5.0-20)] (/usr/bin/python3)\r\n  jinja version = 3.1.3\r\n  libyaml = True\r\nUsing /etc/ansible/ansible.cfg as config file\r\nSkipping callback 'awx_display', as we already have a stdout callback.\nSkipping callback 'default', as we already have a stdout callback.\nSkipping callback 'minimal', as we already have a stdout callback.\nSkipping callback 'oneline', as we already have a stdout callback.\n\r\nPLAYBOOK: awx.yml **************************************************************\n1 plays in /opt/ansible/playbooks/awx.yml\n[WARNING]: Found variable using reserved name: no_log\n\r\nPLAY [localhost] ***************************************************************\n\r\nTASK [Verify imagePullSecrets] *************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:10\nok: [localhost] => {\"censored\": \"the output has been hidden due to the fact that 'no_log: true' was specified for this result\", \"changed\": false}\n\r\nTASK [Create imagePullSecret] **************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:17\nfatal: [localhost]: FAILED! => {\"changed\": false, \"msg\": \"Failed to create object: b'Unable to determine if virtual resource\\\\n'\", \"reason\": \"Internal Server Error\"}\n\r\nPLAY RECAP *********************************************************************\r\nlocalhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   \n","job":"1658216466068658037","name":"awx-demo","namespace":"awx","error":"exit status 2","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/runner.(*runner).Run.func1\n\tansible-operator-plugins/internal/ansible/runner/runner.go:269"}
+
+----- Ansible Task Status Event StdOut (awx.ansible.com/v1beta1, Kind=AWX, awx-demo/awx) -----
+
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+
+----------
+{"level":"error","ts":"2025-07-09T04:34:53Z","msg":"Reconciler error","controller":"awx-controller","object":{"name":"awx-demo","namespace":"awx"},"namespace":"awx","name":"awx-demo","reconcileID":"0b9485d8-79f5-4cd5-8b25-641db90f6740","error":"event runner on failed","stacktrace":"sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:329\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:266\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:227"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Verify imagePullSecrets] *************************************************
+task path: /opt/ansible/playbooks/awx.yml:10
+
+-------------------------------------------------------------------------------
+{"level":"info","ts":"2025-07-09T04:34:54Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"8663642304062271007","EventData.Name":"Verify imagePullSecrets"}
+{"level":"error","ts":"2025-07-09T04:34:54Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Create imagePullSecret] **************************************************
+task path: /opt/ansible/playbooks/awx.yml:17
+
+-------------------------------------------------------------------------------
+{"level":"info","ts":"2025-07-09T04:34:54Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"8663642304062271007","EventData.Name":"Create imagePullSecret"}
+{"level":"error","ts":"2025-07-09T04:34:55Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"error","ts":"2025-07-09T04:34:55Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*injectOwnerReferenceHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/inject_owner.go:93\ngithub.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:150\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+ TASK [Create imagePullSecret] ********************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "Failed to create object: b'Unable to determine if virtual resource\\n'", "reason": "Internal Server Error"}
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:55Z","logger":"logging_event_handler","msg":"","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"runner_on_failed","job":"8663642304062271007","EventData.Task":"Create imagePullSecret","EventData.TaskArgs":"","EventData.FailedTaskPath":"/opt/ansible/playbooks/awx.yml:17","error":"[playbook task failed]","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/events.loggingEventHandler.Handle\n\tansible-operator-plugins/internal/ansible/events/log_events.go:111"}
+{"level":"error","ts":"2025-07-09T04:34:55Z","logger":"runner","msg":"ansible-playbook [core 2.15.8]\r\n  config file = /etc/ansible/ansible.cfg\r\n  configured module search path = ['/usr/share/ansible/openshift']\r\n  ansible python module location = /usr/local/lib/python3.9/site-packages/ansible\r\n  ansible collection location = /opt/ansible/.ansible/collections:/usr/share/ansible/collections\r\n  executable location = /usr/local/bin/ansible-playbook\r\n  python version = 3.9.18 (main, Sep 22 2023, 18:08:20) [GCC 8.5.0 20210514 (Red Hat 8.5.0-20)] (/usr/bin/python3)\r\n  jinja version = 3.1.3\r\n  libyaml = True\r\nUsing /etc/ansible/ansible.cfg as config file\r\nSkipping callback 'awx_display', as we already have a stdout callback.\nSkipping callback 'default', as we already have a stdout callback.\nSkipping callback 'minimal', as we already have a stdout callback.\nSkipping callback 'oneline', as we already have a stdout callback.\n\r\nPLAYBOOK: awx.yml **************************************************************\n1 plays in /opt/ansible/playbooks/awx.yml\n[WARNING]: Found variable using reserved name: no_log\n\r\nPLAY [localhost] ***************************************************************\n\r\nTASK [Verify imagePullSecrets] *************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:10\nok: [localhost] => {\"censored\": \"the output has been hidden due to the fact that 'no_log: true' was specified for this result\", \"changed\": false}\n\r\nTASK [Create imagePullSecret] **************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:17\nfatal: [localhost]: FAILED! => {\"changed\": false, \"msg\": \"Failed to create object: b'Unable to determine if virtual resource\\\\n'\", \"reason\": \"Internal Server Error\"}\n\r\nPLAY RECAP *********************************************************************\r\nlocalhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   \n","job":"8663642304062271007","name":"awx-demo","namespace":"awx","error":"exit status 2","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/runner.(*runner).Run.func1\n\tansible-operator-plugins/internal/ansible/runner/runner.go:269"}
+
+----- Ansible Task Status Event StdOut (awx.ansible.com/v1beta1, Kind=AWX, awx-demo/awx) -----
+
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+
+----------
+{"level":"error","ts":"2025-07-09T04:34:55Z","msg":"Reconciler error","controller":"awx-controller","object":{"name":"awx-demo","namespace":"awx"},"namespace":"awx","name":"awx-demo","reconcileID":"b2d23647-5863-4e91-97e2-0848152f339a","error":"event runner on failed","stacktrace":"sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:329\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:266\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:227"}
+{"level":"info","ts":"2025-07-09T04:34:56Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"1453318051419122131","EventData.Name":"Verify imagePullSecrets"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Verify imagePullSecrets] *************************************************
+task path: /opt/ansible/playbooks/awx.yml:10
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:57Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"info","ts":"2025-07-09T04:34:57Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"1453318051419122131","EventData.Name":"Create imagePullSecret"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Create imagePullSecret] **************************************************
+task path: /opt/ansible/playbooks/awx.yml:17
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:57Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:99\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+{"level":"error","ts":"2025-07-09T04:34:57Z","logger":"proxy","msg":"Unable to determine if virtual resource","gvk":"/v1, Kind=Secret","error":"unable to retrieve the complete list of server APIs: external.metrics.k8s.io/v1beta1: stale GroupVersion discovery: external.metrics.k8s.io/v1beta1","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*injectOwnerReferenceHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/inject_owner.go:93\ngithub.com/operator-framework/ansible-operator-plugins/internal/ansible/proxy.(*cacheResponseHandler).ServeHTTP\n\tansible-operator-plugins/internal/ansible/proxy/cache_response.go:150\nnet/http.serverHandler.ServeHTTP\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:2936\nnet/http.(*conn).serve\n\t/opt/hostedtoolcache/go/1.20.12/x64/src/net/http/server.go:1995"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+{"level":"error","ts":"2025-07-09T04:34:57Z","logger":"logging_event_handler","msg":"","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"runner_on_failed","job":"1453318051419122131","EventData.Task":"Create imagePullSecret","EventData.TaskArgs":"","EventData.FailedTaskPath":"/opt/ansible/playbooks/awx.yml:17","error":"[playbook task failed]","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/events.loggingEventHandler.Handle\n\tansible-operator-plugins/internal/ansible/events/log_events.go:111"}
+
+ TASK [Create imagePullSecret] ********************************
+fatal: [localhost]: FAILED! => {"changed": false, "msg": "Failed to create object: b'Unable to determine if virtual resource\\n'", "reason": "Internal Server Error"}
+
+-------------------------------------------------------------------------------
+{"level":"error","ts":"2025-07-09T04:34:58Z","logger":"runner","msg":"ansible-playbook [core 2.15.8]\r\n  config file = /etc/ansible/ansible.cfg\r\n  configured module search path = ['/usr/share/ansible/openshift']\r\n  ansible python module location = /usr/local/lib/python3.9/site-packages/ansible\r\n  ansible collection location = /opt/ansible/.ansible/collections:/usr/share/ansible/collections\r\n  executable location = /usr/local/bin/ansible-playbook\r\n  python version = 3.9.18 (main, Sep 22 2023, 18:08:20) [GCC 8.5.0 20210514 (Red Hat 8.5.0-20)] (/usr/bin/python3)\r\n  jinja version = 3.1.3\r\n  libyaml = True\r\nUsing /etc/ansible/ansible.cfg as config file\r\nSkipping callback 'awx_display', as we already have a stdout callback.\nSkipping callback 'default', as we already have a stdout callback.\nSkipping callback 'minimal', as we already have a stdout callback.\nSkipping callback 'oneline', as we already have a stdout callback.\n\r\nPLAYBOOK: awx.yml **************************************************************\n1 plays in /opt/ansible/playbooks/awx.yml\n[WARNING]: Found variable using reserved name: no_log\n\r\nPLAY [localhost] ***************************************************************\n\r\nTASK [Verify imagePullSecrets] *************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:10\nok: [localhost] => {\"censored\": \"the output has been hidden due to the fact that 'no_log: true' was specified for this result\", \"changed\": false}\n\r\nTASK [Create imagePullSecret] **************************************************\r\ntask path: /opt/ansible/playbooks/awx.yml:17\nfatal: [localhost]: FAILED! => {\"changed\": false, \"msg\": \"Failed to create object: b'Unable to determine if virtual resource\\\\n'\", \"reason\": \"Internal Server Error\"}\n\r\nPLAY RECAP *********************************************************************\r\nlocalhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   \n","job":"1453318051419122131","name":"awx-demo","namespace":"awx","error":"exit status 2","stacktrace":"github.com/operator-framework/ansible-operator-plugins/internal/ansible/runner.(*runner).Run.func1\n\tansible-operator-plugins/internal/ansible/runner/runner.go:269"}
+
+----- Ansible Task Status Event StdOut (awx.ansible.com/v1beta1, Kind=AWX, awx-demo/awx) -----
+
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+
+----------
+{"level":"error","ts":"2025-07-09T04:34:58Z","msg":"Reconciler error","controller":"awx-controller","object":{"name":"awx-demo","namespace":"awx"},"namespace":"awx","name":"awx-demo","reconcileID":"653cd42b-9203-4e37-b3eb-55f2f2d33712","error":"event runner on failed","stacktrace":"sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:329\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:266\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Start.func2.2\n\t/home/runner/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.16.3/pkg/internal/controller/controller.go:227"}
+{"level":"info","ts":"2025-07-09T04:34:59Z","logger":"logging_event_handler","msg":"[playbook task start]","name":"awx-demo","namespace":"awx","gvk":"awx.ansible.com/v1beta1, Kind=AWX","event_type":"playbook_on_task_start","job":"8064071567494849004","EventData.Name":"Verify imagePullSecrets"}
+
+--------------------------- Ansible Task StdOut -------------------------------
+
+TASK [Verify imagePullSecrets] *************************************************
+task path: /opt/ansible/playbooks/awx.yml:10

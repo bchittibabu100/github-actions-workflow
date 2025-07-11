@@ -1,42 +1,86 @@
-data "azurerm_shared_image_version" "rhel9_latest" {
-  name                = "latest"
-  image_name          = "RHEL_9"
-  gallery_name        = "prod_goldern_image_azu_gallery"
-  resource_group_name = "rg-of-image-gallery"   # Replace with actual RG
-}
+name: Deploy AWX
 
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment name (e.g. dev, stg, prod)"
+        required: true
+        default: "dev"
+      cluster_name:
+        description: "AKS cluster name"
+        required: true
 
-az sig image-version list \
-  --gallery-name prod_goldern_image_azu_gallery \
-  --gallery-image-definition RHEL_9 \
-  --resource-group <gallery-rg> \
-  --query "[].{Name:name, Published:publishingProfile.publishedDate}" --output table
+env:
+  LOCATION: centralus
+  RESOURCE_GROUP: rg-${{ github.event.inputs.environment }}-hub-centralus
+  NAMESPACE: awx
+  AWX_REPO: https://github.com/ansible/awx-operator.git
+  AWX_TAG: 2.19.1
+  NODEPOOL_NAME: awxpool
+  NODEPOOL_VM_SIZE: Standard_D2ps_v6
+  TAINT_KEY: awx
+  TAINT_VALUE: true
+  TAINT_EFFECT: NoSchedule
 
-resource "azurerm_linux_virtual_machine" "epra-gi-stg" {
-  name                = "epra-gi-stg-s1"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  size                = "Standard_F32s_v2"
-  admin_username      = "awxadmin"
-  network_interface_ids = [azurerm_network_interface.example.id]
+jobs:
+  create-nodepool:
+    name: Create AKS Node Pool
+    runs-on: ubuntu-latest
 
-  admin_ssh_key {
-    username   = "awxadmin"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  os_disk {
-    name                 = "epra-gi-stg-s1-disk"
-    caching              = "ReadWrite"
-    storage_account_type = "Premium_LRS"
-    disk_size_gb         = 64
-  }
+      - name: Create AWX Node Pool with Taints
+        run: |
+          az aks nodepool add \
+            --resource-group $RESOURCE_GROUP \
+            --cluster-name ${{ github.event.inputs.cluster_name }} \
+            --name $NODEPOOL_NAME \
+            --node-count 1 \
+            --node-vm-size $NODEPOOL_VM_SIZE \
+            --labels workload=awx \
+            --aks-custom-headers UseGPUDedicatedVHD=true \
+            --node-taints $TAINT_KEY=$TAINT_VALUE:$TAINT_EFFECT \
+            --zones 1 \
+            --mode User
 
-  source_image_id = data.azurerm_shared_image_version.rhel9_latest.id
+  install-awx:
+    name: Deploy AWX to AKS
+    runs-on: ubuntu-latest
+    needs: create-nodepool
 
-  disable_password_authentication = true
+    steps:
+      - name: Checkout AWX Installer
+        run: |
+          git clone --depth 1 --branch $AWX_TAG $AWX_REPO
+          cd awx-operator
+          echo "Cloned tag $AWX_TAG"
 
-  identity {
-    type = "SystemAssigned"
-  }
-}
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+            --name ${{ github.event.inputs.cluster_name }} \
+            --resource-group $RESOURCE_GROUP \
+            --overwrite-existing
+
+      - name: Create Namespace
+        run: |
+          kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy AWX Operator
+        run: |
+          cd awx-operator
+          make deploy NAMESPACE=$NAMESPACE
+
+      - name: Apply AWX Custom Resource
+        run: |
+          kubectl apply -f awx-deploy.yaml -n $NAMESPACE

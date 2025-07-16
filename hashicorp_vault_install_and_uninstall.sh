@@ -1,60 +1,62 @@
-5 extracting sha256:0a9a5dfd008f05ebc27e4790db0709a29e527690c21bcbcd01481eaeb6bb49dc
-#5 extracting sha256:0a9a5dfd008f05ebc27e4790db0709a29e527690c21bcbcd01481eaeb6bb49dc 0.1s done
-#5 sha256:de4fe7064d8f98419ea6b49190df1abbf43450c1702eeb864fe9ced453c1cc5f 9.22kB / 9.22kB done
-#5 sha256:43180c492a5e6cedd8232e8f77a454f666f247586853eecb90258b26688ad1d3 1.02kB / 1.02kB done
-#5 sha256:ff221270b9fb7387b0ad9ff8f69fbbd841af263842e62217392f18c3b5226f38 581B / 581B done
-#5 sha256:0a9a5dfd008f05ebc27e4790db0709a29e527690c21bcbcd01481eaeb6bb49dc 3.63MB / 3.63MB 0.1s done
-#5 DONE 0.3s
+#!/bin/bash
 
-#6 [2/2] RUN apk add --no-cache       bash       jq       tzdata       fontconfig       liberation-fonts       zlib       icu-data-full       musl-locales
-#6 0.165 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/APKINDEX.tar.gz
-#6 0.724 281B96E8FC7E0000:error:0A000086:SSL routines:tls_post_process_server_certificate:certificate verify failed:ssl/statem/statem_clnt.c:2103:
-#6 0.725 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/APKINDEX.tar.gz
-#6 0.725 WARNING: fetching https://dl-cdn.alpinelinux.org/alpine/v3.20/main: Permission denied
-#6 0.759 281B96E8FC7E0000:error:0A000086:SSL routines:tls_post_process_server_certificate:certificate verify failed:ssl/statem/statem_clnt.c:2103:
-#6 0.760 WARNING: fetching https://dl-cdn.alpinelinux.org/alpine/v3.20/community: Permission denied
-#6 0.760 ERROR: unable to select packages:
-#6 0.760   bash (no such package):
-#6 0.760     required by: world[bash]
-#6 0.760   fontconfig (no such package):
-#6 0.760     required by: world[fontconfig]
-#6 0.760   icu-data-full (no such package):
-#6 0.760     required by: world[icu-data-full]
-#6 0.760   jq (no such package):
-#6 0.760     required by: world[jq]
-#6 0.760   liberation-fonts (no such package):
-#6 0.760     required by: world[liberation-fonts]
-#6 0.760   musl-locales (no such package):
-#6 0.760     required by: world[musl-locales]
-#6 0.760   tzdata (no such package):
-#6 0.760     required by: world[tzdata]
-#6 ERROR: process "/bin/sh -c apk add --no-cache       bash       jq       tzdata       fontconfig       liberation-fonts       zlib       icu-data-full       musl-locales" did not complete successfully: exit code: 7
-------
- > [2/2] RUN apk add --no-cache       bash       jq       tzdata       fontconfig       liberation-fonts       zlib       icu-data-full       musl-locales:
-0.760   icu-data-full (no such package):
-0.760     required by: world[icu-data-full]
-0.760   jq (no such package):
-0.760     required by: world[jq]
-0.760   liberation-fonts (no such package):
-0.760     required by: world[liberation-fonts]
-0.760   musl-locales (no such package):
-0.760     required by: world[musl-locales]
-0.760   tzdata (no such package):
-0.760     required by: world[tzdata]
-------
-Dockerfile:4
---------------------
-   3 |     
-   4 | >>> RUN apk add --no-cache \
-   5 | >>>       bash \
-   6 | >>>       jq \
-   7 | >>>       tzdata \
-   8 | >>>       fontconfig \
-   9 | >>>       liberation-fonts \
-  10 | >>>       zlib \
-  11 | >>>       icu-data-full \
-  12 | >>>       musl-locales
-  13 |     
---------------------
-ERROR: failed to solve: process "/bin/sh -c apk add --no-cache       bash       jq       tzdata       fontconfig       liberation-fonts       zlib       icu-data-full       musl-locales" did not complete successfully: exit code: 7
-Error: Process completed with exit code 1.
+# Optional: Force login (uncomment if needed)
+# az login --tenant <your-tenant-id>
+
+# Variables (edit as needed)
+DURATION="PT8H"  # ISO8601 format: PT8H = 8 hours
+JUSTIFICATION="Access needed for 8 hours to perform deployment"
+GRAPH_API_VERSION="beta"
+
+echo "Fetching your Azure AD user object ID..."
+USER_OBJECT_ID=$(az ad signed-in-user show --query id -o tsv)
+if [[ -z "$USER_OBJECT_ID" ]]; then
+  echo "Failed to get signed-in user ID"
+  exit 1
+fi
+
+echo "Fetching your current subscription ID..."
+SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+if [[ -z "$SUBSCRIPTION_ID" ]]; then
+  echo "Failed to get current subscription ID"
+  exit 1
+fi
+
+echo "Looking for eligible PIM Contributor roles..."
+ELIGIBLE_ROLES=$(az rest --method GET \
+  --url "https://graph.microsoft.com/$GRAPH_API_VERSION/roleManagement/directory/roleEligibilityScheduleInstances?\$filter=principalId eq '$USER_OBJECT_ID'" \
+  --query "value[?roleDefinition.displayName=='Contributor']" \
+  -o json)
+
+if [[ $(echo "$ELIGIBLE_ROLES" | jq length) -eq 0 ]]; then
+  echo "No eligible Contributor PIM role found."
+  exit 1
+fi
+
+# Use the first eligible instance
+INSTANCE_ID=$(echo "$ELIGIBLE_ROLES" | jq -r '.[0].id')
+ROLE_DEFINITION_ID=$(echo "$ELIGIBLE_ROLES" | jq -r '.[0].roleDefinitionId')
+
+echo "Activating Contributor role via PIM for subscription $SUBSCRIPTION_ID..."
+
+START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+az rest --method POST \
+  --url "https://graph.microsoft.com/$GRAPH_API_VERSION/roleManagement/directory/roleScheduleRequests" \
+  --headers 'Content-Type=application/json' \
+  --body "{
+    \"principalId\": \"$USER_OBJECT_ID\",
+    \"roleDefinitionId\": \"$ROLE_DEFINITION_ID\",
+    \"directoryScopeId\": \"/subscriptions/$SUBSCRIPTION_ID\",
+    \"action\": \"selfActivate\",
+    \"justification\": \"$JUSTIFICATION\",
+    \"scheduleInfo\": {
+      \"startDateTime\": \"$START_TIME\",
+      \"expiration\": {
+        \"type\": \"AfterDuration\",
+        \"duration\": \"$DURATION\"
+      }
+    }
+  }"
+
+echo "Request submitted. It may take a moment for activation to be reflected."

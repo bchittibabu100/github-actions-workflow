@@ -1,16 +1,59 @@
-mo066inflrun01 ~ # mtr -rwzbc100 api.github.com
-Start: 2025-07-18T00:42:55-0500
-HOST: mo066inflrun01                                                   Loss%   Snt   Last   Avg  Best  Wrst StDev
-  1. AS???    _gateway (10.140.106.1)                                   0.0%   100    0.2   0.1   0.1   0.6   0.1
-  2. AS???    10.140.255.20                                             0.0%   100    0.2   0.2   0.1   0.4   0.0
-  3. AS7029   h177.50.137.40.static.ip.windstream.net (40.137.50.177)   0.0%   100    0.4   1.4   0.3  39.6   4.7
-  4. AS7029   ae1-0.agr01.stls01-mo.us.windstream.net (40.138.83.208)   0.0%   100    2.2   1.0   0.5   7.0   1.0
-  5. AS7029   ae22.cr02.chcg02-il.us.windstream.net (40.136.112.66)     7.0%   100    6.6   6.6   6.5   7.5   0.2
-  6. AS7029   ae1.cr01.chcg02-il.us.windstream.net (169.130.82.82)     93.0%   100    6.6   6.6   6.5   6.8   0.1
-  7. AS7029   ae6.cr01.asbn07-va.us.windstream.net (40.128.10.133)      2.0%   100   24.2  24.2  24.1  24.5   0.1
-  8. AS7029   ae1.cr02.asbn07-va.us.windstream.net (169.130.193.69)    65.0%   100   24.2  24.3  24.2  25.7   0.3
-  9. AS???    eqix-dc5.github-1.com (206.126.237.27)                    0.0%   100   24.4  37.9  24.3 426.6  59.8
- 10. AS???    ???                                                      100.0   100    0.0   0.0   0.0   0.0   0.0
- 11. AS???    ???                                                      100.0   100    0.0   0.0   0.0   0.0   0.0
- 12. AS???    ???                                                      100.0   100    0.0   0.0   0.0   0.0   0.0
- 13. AS36459  lb-140-82-112-6-iad.github.com (140.82.112.6)             0.0%   100   24.4  24.4  24.4  25.0   0.1
+Runner logs:
+[2025-07-21 16:18:56Z ERR  TempDirectoryManager] System.UnauthorizedAccessException: Access to the path '/home/gitrunner/actions-runner/_work/_temp/_github_home/.kube' is denied.
+ ---> System.IO.IOException: Permission denied
+
+ 
+Noticed following to hidden directories having root as owner and group
+ls -la /home/gitrunner/actions-runner/_work/_temp/_github_home/
+drwxr-xr-x 4 gitrunner gitrunner   4096 Jul 18 06:52 .
+drwxr-xr-x 8 gitrunner gitrunner 176128 Jul 21 11:46 ..
+drwxr-xr-x 3 root      root        4096 Jul 18 06:52 .cache
+drwxr-x--- 3 root      root        4096 Jul 18 06:52 .kube
+
+
+Only these repo shows up group as docker rest all shows as gitrunner
+ls -la /home/gitrunner/actions-runner/_work/ | grep docker
+drwxr-xr-x   4 gitrunner docker      4096 Jul 19  2023 chk-fax-management
+drwxr-xr-x   3 gitrunner docker      4096 Apr  7 13:36 chk-generation
+drwxr-xr-x   3 gitrunner docker      4096 Apr  9 04:46 chk-parsing
+
+
+gitrunner@mo066inflrun01 ~/actions-runner/_diag $ls -l /home/gitrunner/actions-runner/_work/_temp/
+total 236
+drwxr-xr-x 3 gitrunner gitrunner   4096 Jul 21 04:48 __default-support
+drwx------ 2 gitrunner gitrunner   4096 Jul 21 08:37 docker-actions-toolkit-5bNpHP
+drwx------ 2 root      root        4096 Jul 21 15:07 docker-actions-toolkit-aBiaLl
+drwx------ 2 root      root        4096 Jul 21 15:15 docker-actions-toolkit-DJegoa
+drwx------ 2 root      root        4096 Jul 21 15:05 docker-actions-toolkit-DmPfFP
+drwx------ 2 root      root        4096 Jul 21 15:25 docker-actions-toolkit-ELMnMI
+drwx------ 2 gitrunner gitrunner   4096 Jul 21 08:37 docker-actions-toolkit-FYL7bE
+drwx------ 2 root      root        4096 Jul 21 15:05 docker-actions-toolkit-hFflFj
+drwx------ 2 root      root        4096 Jul 21 15:13 docker-actions-toolkit-jLjCLc
+drwx------ 2 root      root        4096 Jul 21 15:20 docker-actions-toolkit-lbnECA
+drwx------ 2 root      root        4096 Jul 21 15:22 docker-actions-toolkit-LikHjH
+drwx------ 2 root      root        4096 Jul 21 15:23 docker-actions-toolkit-lLJjMn
+drwx------ 2 root      root        4096 Jul 21 15:14 docker-actions-toolkit-MMACAE
+drwx------ 2 root      root        4096 Jul 21 15:07 docker-actions-toolkit-nboHiN
+drwx------ 2 root      root        4096 Jul 21 15:19 docker-actions-toolkit-NceCea
+drwxr-xr-x 5 gitrunner gitrunner   4096 Jul 21 15:05 _github_home
+drwxr-xr-x 2 gitrunner gitrunner   4096 Jul 18 06:52 _github_workflow
+drwxr-xr-x 2 gitrunner gitrunner 167936 Jul 21 15:33 _runner_file_commands
+
+
+mo066inflrun01 ~ # whoami
+root
+mo066inflrun01 ~ # cat /etc/systemd/system/actions.runner.optum-financial.vpay-mo066inflrun01.service
+[Unit]
+Description=GitHub Actions Runner (optum-financial.vpay-mo066inflrun01)
+After=network.target
+
+[Service]
+ExecStart=/home/gitrunner/actions-runner/runsvc.sh
+User=gitrunner
+WorkingDirectory=/home/gitrunner/actions-runner
+KillMode=process
+KillSignal=SIGTERM
+TimeoutStopSec=5min
+
+[Install]
+WantedBy=multi-user.target

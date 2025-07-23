@@ -144,3 +144,27 @@ SSL-Session:
 ---
 read R BLOCK
 closed
+
+mo066inflrun01 _diag # dig broker.actions.githubusercontent.com
+
+; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> broker.actions.githubusercontent.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 42043
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 65494
+;; QUESTION SECTION:
+;broker.actions.githubusercontent.com. IN A
+
+;; ANSWER SECTION:
+broker.actions.githubusercontent.com. 2304 IN CNAME glb-c0e95bd587389a.github.com.
+glb-c0e95bd587389a.github.com. 2304 IN	A	20.85.130.105
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.53#53(127.0.0.53) (UDP)
+;; WHEN: Tue Jul 22 23:44:43 CDT 2025
+;; MSG SIZE  rcvd: 121
+
+mo066inflrun01 _diag # env | grep -i proxy

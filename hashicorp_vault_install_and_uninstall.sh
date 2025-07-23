@@ -1,180 +1,70 @@
-gitrunner@mo066inflrun01 ~/actions-runner $cat svc.sh
-#!/bin/bash
+#######################################
+## This Dockerfile requires BuildKit ##
+#######################################
 
-SVC_NAME="actions.runner.chk-financial.vpay-mo066inflrun01.service"
-SVC_NAME=${SVC_NAME// /_}
-SVC_DESCRIPTION="GitHub Actions Runner (chk-financial.vpay-mo066inflrun01)"
+## General arguments
+ARG REGISTRY=docker.repo1.phg.com/vpay-docker
+ARG DOTNET_VERSION=6.0
 
-SVC_CMD=$1
-arg_2=${2}
+## ***Use for dotnet 5.0 and above***
+ARG DOTNET_SDK_VARIANT=focal
+ARG DOTNET_RUNTIME_VARIANT=focal-db2
+ARG BASE_SDK_IMAGE=dotnet/sdk
+ARG BASE_RUNTIME_IMAGE=dotnet/aspnet
 
-RUNNER_ROOT=`pwd`
+## ***Use for dotnet core 3.1 and below***
+# ARG DOTNET_SDK_VARIANT=bionic
+# ARG DOTNET_RUNTIME_VARIANT=bionic-db2
+# ARG BASE_SDK_IMAGE=dotnet/core/sdk
+# ARG BASE_RUNTIME_IMAGE=dotnet/core/aspnet
 
-UNIT_PATH=/etc/systemd/system/${SVC_NAME}
-TEMPLATE_PATH=$GITHUB_ACTIONS_RUNNER_SERVICE_TEMPLATE
-IS_CUSTOM_TEMPLATE=0
-if [[ -z $TEMPLATE_PATH ]]; then
-    TEMPLATE_PATH=./bin/actions.runner.service.template
-else
-    IS_CUSTOM_TEMPLATE=1
-fi
-TEMP_PATH=./bin/actions.runner.service.temp
-CONFIG_PATH=.service
+## Build Stage
+FROM ${REGISTRY}/base-images/${BASE_SDK_IMAGE}:${DOTNET_VERSION}-${DOTNET_SDK_VARIANT} as build
 
-user_id=`id -u`
+## Build stage arguments
+ARG CONFIG_PROFILE=Release
+ARG PROJECT_DIR
+ARG PROJECT_NAME
 
-# systemctl must run as sudo
-# this script is a convenience wrapper around systemctl
-if [ $user_id -ne 0 ]; then
-    echo "Must run as sudo"
-    exit 1
-fi
+ENV PROJECT=${PROJECT_DIR}/${PROJECT_NAME}.csproj
+WORKDIR /app
 
-function failed()
-{
-   local error=${1:-Undefined error}
-   echo "Failed: $error" >&2
-   exit 1
-}
+COPY nuget.config* ./
+COPY *.sln ./
 
-if [ ! -f "${TEMPLATE_PATH}" ]; then
-    if [[ $IS_CUSTOM_TEMPLATE = 0 ]]; then
-        failed "Must run from runner root or install is corrupt"
-    else
-        failed "Service file at '$GITHUB_ACTIONS_RUNNER_SERVICE_TEMPLATE' using GITHUB_ACTIONS_RUNNER_SERVICE_TEMPLATE env variable is not found"
-    fi
-fi
+## Copy .csproj files into the correct file structure
+SHELL ["/bin/bash", "-O", "globstar", "-c"]
+RUN --mount=target=docker_build_context \
+cd docker_build_context;\
+cp **/*.csproj ../ --parents;
+RUN rm -rf docker_build_context
+SHELL ["/bin/sh", "-c"]
 
-#check if we run as root
-if [[ $(id -u) != "0" ]]; then
-    echo "Failed: This script requires to run with sudo." >&2
-    exit 1
-fi
+## Restore project
+RUN dotnet restore ${PROJECT}
+## Copy all files if restore succeeds
+COPY . ./
+## Publish project without restoring
+RUN dotnet publish --no-restore -c ${CONFIG_PROFILE} -o /app/out ${PROJECT}
 
-function install()
-{
-    echo "Creating launch runner in ${UNIT_PATH}"
-    if [ -f "${UNIT_PATH}" ]; then
-        failed "error: exists ${UNIT_PATH}"
-    fi
+## New stage used to reduce the size of the final image
+FROM ${REGISTRY}/base-images/${BASE_RUNTIME_IMAGE}:${DOTNET_VERSION}-${DOTNET_RUNTIME_VARIANT} AS final
 
-    if [ -f "${TEMP_PATH}" ]; then
-      rm "${TEMP_PATH}" || failed "failed to delete ${TEMP_PATH}"
-    fi
+RUN ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
 
-    # can optionally use username supplied
-    run_as_user=${arg_2:-$SUDO_USER}
-    echo "Run as user: ${run_as_user}"
+## Final stage arguments
+ARG PROJECT_NAME
 
-    run_as_uid=$(id -u ${run_as_user}) || failed "User does not exist"
-    echo "Run as uid: ${run_as_uid}"
+WORKDIR /app
 
-    run_as_gid=$(id -g ${run_as_user}) || failed "Group not available"
-    echo "gid: ${run_as_gid}"
+COPY --from=build /app/out .
+ENV ASPNETCORE_URLS=http://+:80
 
-    sed "s/{{User}}/${run_as_user}/g; s/{{Description}}/$(echo ${SVC_DESCRIPTION} | sed -e 's/[\/&]/\\&/g')/g; s/{{RunnerRoot}}/$(echo ${RUNNER_ROOT} | sed -e 's/[\/&]/\\&/g')/g;" "${TEMPLATE_PATH}" > "${TEMP_PATH}" || failed "failed to create replacement temp file"
-    mv "${TEMP_PATH}" "${UNIT_PATH}" || failed "failed to copy unit file"
+## Create a symlink so we can use exec form entrypoint
+RUN ln -s ${PROJECT_NAME}.dll Entrypoint.dll
 
-    # Recent Fedora based Linux (CentOS/Redhat) has SELinux enabled by default
-    # We need to restore security context on the unit file we added otherwise SystemD have no access to it.
-    command -v getenforce > /dev/null
-    if [ $? -eq 0 ]
-    then
-        selinuxEnabled=$(getenforce)
-        if [[ $selinuxEnabled == "Enforcing" ]]
-        then
-            # SELinux is enabled, we will need to Restore SELinux Context for the service file
-            restorecon -r -v "${UNIT_PATH}" || failed "failed to restore SELinux context on ${UNIT_PATH}"
-        fi
-    fi
+ENTRYPOINT [ "dotnet", "Entrypoint.dll" ]
 
-    # unit file should not be executable and world writable
-    chmod 664 "${UNIT_PATH}" || failed "failed to set permissions on ${UNIT_PATH}"
-    systemctl daemon-reload || failed "failed to reload daemons"
-
-    # Since we started with sudo, runsvc.sh will be owned by root. Change this to current login user.
-    cp ./bin/runsvc.sh ./runsvc.sh || failed "failed to copy runsvc.sh"
-    chown ${run_as_uid}:${run_as_gid} ./runsvc.sh || failed "failed to set owner for runsvc.sh"
-    chmod 755 ./runsvc.sh || failed "failed to set permission for runsvc.sh"
-
-    systemctl enable ${SVC_NAME} || failed "failed to enable ${SVC_NAME}"
-
-    echo "${SVC_NAME}" > ${CONFIG_PATH} || failed "failed to create .service file"
-    chown ${run_as_uid}:${run_as_gid} ${CONFIG_PATH} || failed "failed to set permission for ${CONFIG_PATH}"
-}
-
-function start()
-{
-    systemctl start ${SVC_NAME} || failed "failed to start ${SVC_NAME}"
-    status
-}
-
-function stop()
-{
-    systemctl stop ${SVC_NAME} || failed "failed to stop ${SVC_NAME}"
-    status
-}
-
-function uninstall()
-{
-    if service_exists; then
-        stop
-        systemctl disable ${SVC_NAME} || failed "failed to disable ${SVC_NAME}"
-        rm "${UNIT_PATH}" || failed "failed to delete ${UNIT_PATH}"
-    else
-        echo "Service ${SVC_NAME} is not installed"
-    fi
-    if [ -f "${CONFIG_PATH}" ]; then
-      rm "${CONFIG_PATH}" || failed "failed to delete ${CONFIG_PATH}"
-    fi
-    systemctl daemon-reload || failed "failed to reload daemons"
-}
-
-function service_exists() {
-    if [ -f "${UNIT_PATH}" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-function status()
-{
-    if service_exists; then
-        echo
-        echo "${UNIT_PATH}"
-    else
-        echo
-        echo "not installed"
-        echo
-        exit 1
-    fi
-
-    systemctl --no-pager status ${SVC_NAME}
-}
-
-function usage()
-{
-    echo
-    echo Usage:
-    echo "./svc.sh [install, start, stop, status, uninstall]"
-    echo "Commands:"
-    echo "   install [user]: Install runner service as Root or specified user."
-    echo "   start: Manually start the runner service."
-    echo "   stop: Manually stop the runner service."
-    echo "   status: Display status of runner service."
-    echo "   uninstall: Uninstall runner service."
-    echo
-}
-
-case $SVC_CMD in
-   "install") install;;
-   "status") status;;
-   "uninstall") uninstall;;
-   "start") start;;
-   "stop") stop;;
-   "status") status;;
-   *) usage;;
-esac
-
-exit 0
+## Optionally add image build time
+ARG IMAGE_BUILD_TIME
+ENV IMAGE_BUILD_TIME ${IMAGE_BUILD_TIME}

@@ -1,27 +1,67 @@
----
-- name: Check Vitals and Process Files
-  hosts: localhost
-  vars:
-    repo_name: "{{ lookup('env', 'repo_name') }}"
-    environment: "{{ ENVIRONMENT }}"
-    vault_environment: "{{ lookup('env', 'vault_environment') }}"
-    vpay_tpa_claims_api_url: "{{ lookup('env', 'VPAY_TPA_CLAIMS_API_URL') }}"
-    vpay_tpa_RestAPI: "{{ lookup('env', 'VPAY_TPA_REST_API_URL') }}"
-    vpay_tpa_mysqlhost: "{{ lookup('env', 'VPAY_TPA_MYSQLHOST') }}"
-    vpay_tpa_toemail: "{{ lookup('env', 'VPAY_TPA_TOEMAIL') }}"
-    vpay_tpa_fromemail: "{{ lookup('env', 'VPAY_TPA_FROMEMAIL') }}"
-    vpay_tpa_voidcheck: "{{ lookup('env', 'VPAY_TPA_VOIDCHECK') }}"
-    vpay_tpa_ftp: "{{ lookup('env', 'VPAY_TPA_FTPHOST') }}"
-    repo_variables_file: "{{ lookup('env', 'GITHUB_WORKSPACE') }}/actions-common/tpa/repo_variables.yaml"
-    repo_path: "{{ lookup('env', 'GITHUB_WORKSPACE') }}/{{ repo_name }}"
-    vitals_yaml_path: "{{ repo_path }}/vitals.yaml"
-    vitals_yml_path: "{{ repo_path }}/vitals.yml"
-  tasks:
+kubectl create secret generic mssql-secret \
+  --from-literal=SA_PASSWORD='YourStrong!Passw0rd'
 
-    - name: Check if vitals.yaml or vitals.yml exists
-      stat:
-        path: "{{ item }}"
-      loop:
-        - "{{ vitals_yaml_path }}"
-        - "{{ vitals_yml_path }}"
-      register: vitals_files
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mssql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mssql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mssql
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      containers:
+      - name: mssql
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+        - containerPort: 1433
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mssql-secret
+              key: SA_PASSWORD
+        volumeMounts:
+        - name: mssql-data
+          mountPath: /var/opt/mssql
+      volumes:
+      - name: mssql-data
+        persistentVolumeClaim:
+          claimName: mssql-pvc
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 1433
+      targetPort: 1433
+  selector:
+    app: mssql
+
+kubectl apply -f mssql-pvc.yaml
+kubectl apply -f mssql-deployment.yaml
+kubectl apply -f mssql-service.yaml
+sqlcmd -S <host>,1433 -U sa -P 'YourStrong!Passw0rd'

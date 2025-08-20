@@ -1,10 +1,5 @@
-Here is the github workflow. Seeing empty output inside xray_scan job.
+Here is the updated workflow. But still nothing shows up in the xray_scan job.
 
-xray_scan job logs:
-Run echo "Encoded output from deploy job:"
-Encoded output from deploy job:
-
-Workflow:
 name: Get Production Image details from Repo1
 
 on:
@@ -36,7 +31,7 @@ jobs:
       group: vpay-runner-group
 
     outputs:
-      encoded_images: ${{ steps.set-output.outputs.msg }}
+      encoded_images: ${{ steps.encode.outputs.encoded }}
 
     steps:
       - uses: actions/checkout@v4
@@ -83,21 +78,8 @@ jobs:
           echo "Encoded output:"
           echo "$encoded"
 
-          echo "ENCODED_IMAGES=$encoded" >> $GITHUB_ENV
+          echo "encoded=$encoded" >> $GITHUB_OUTPUT
 
-      - name: Set output message
-        id: set-output
-        run: |
-          echo "Encoded_images: "
-          echo "$ENCODED_IMAGES"
-          export ENCODED_IMAGES=$ENCODED_IMAGES
-          echo "msg=$ENCODED_IMAGES" >> $GITHUB_OUTPUT
-
-      - name: Debug env var
-        run: |
-          echo "ENCODED_IMAGES from env:"
-          echo "$ENCODED_IMAGES"
-  
   xray_scan:
     needs: deploy
     runs-on: uhg-runner

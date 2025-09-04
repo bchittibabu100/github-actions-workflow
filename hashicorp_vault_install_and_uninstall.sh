@@ -1,45 +1,3 @@
-Here is the deployment template.
-
-{{- define "vpay.deployment.tpl" }}
----
-apiVersion: apps/v1
-kind: Deployment
-{{ template "vpay.metadata" . }}
-spec:
-  revisionHistoryLimit: {{ default (4) .Values.revisionHistoryLimit }}
-  {{- if (dig "experimentalFeatures" "omitReplicaCount" "enabled" (false) .Values) }}
-    {{- if (.Values.replicas) }}
-      {{- fail "When 'omitReplicaCount' is enabled, you can't provide '.Values.replicas'" }}
-    {{- end }}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: {{ default ("100%") .Values.maxSurge }}
-      maxUnavailable: {{ default ("0%") .Values.maxUnavailable }}
-  {{- else }}
-    {{- $replicas := ternary (1) (default (0) (int .Values.replicas)) (eq (.Values.replicas | toString) "<nil>") }}
-    {{- $maxSurge := ternary "100%" "50%" (eq $replicas 1) }}
-    {{- $maxUnavailable := ternary "0%" "50%" (eq $replicas 1) }}
-  replicas: {{ $replicas }}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: {{ default ($maxSurge) .Values.maxSurge }}
-      maxUnavailable: {{ default ($maxUnavailable) .Values.maxUnavailable }}
-  {{- end }}
-  selector:
-    matchLabels:
-      {{ template "vpay.labels.name" . }}
-      {{ template "vpay.labels.instance" . }}
-  template:
-    {{ include "vpay.podmetaspec.tpl" $ | indent 4 | trim }}
-
-  {{- if (dig "experimentalFeatures" "horizontalPodAutoscaler" "enabled" (false) .Values) }}
-    {{- include "vpay.horizontalpodautoscaler.tpl" . }}
-  {{- end }}
-{{- end -}}
-
-Here is the values file
 chart:
   virtual:
     charts:
@@ -61,7 +19,7 @@ global:
     name: dev
     ingress:
       subdomain: dev.pks.vpayusa.net
-      
+
 remittance-partner-network:
   replicas: 1
   enabled: true
@@ -99,6 +57,8 @@ remittance-partner-network:
           PARTNER_SEND_INDICATOR: ["salucro=true", "patientpay=true"]
         serviceEndpoint:
           PARTNER_SERVICEENDPOINT: ["salucro=https://pti-api.salucro-qa.net/vcard/vpay/c2b", "patientpay=https://optum-dev.patientpay.net/transaction"]
+
+  # Existing environment variables
   env:
     graylog_level: debug
     winston_silent_console: 'false'
@@ -106,4 +66,13 @@ remittance-partner-network:
     graylog_facility: remittance-partner-network
     graylog_servers: "nonprod-syslog.vpayusa.net"
 
-give me udpated values file to have datadog related annotation, label and env's
+    # ➕ Datadog env vars
+    DD_LOGS_INJECTION: "true"
+
+  # ➕ Pod annotations
+  podAnnotations:
+    admission.datadoghq.com/dotnet-lib.version: v3.24.1
+
+  # ➕ Pod labels
+  podLabels:
+    admission.datadoghq.com/enabled: "true"

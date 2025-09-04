@@ -1,87 +1,145 @@
-chart:
-  virtual:
-    charts:
-      - remittance-partner-network
-    shared:
-      generate:
-        deployment: true
-        service: true
-        ingress: true
-        secret: true
-        configmap: true
-      image:
-        registry: docker.repo1.uhc.com/vpay-docker
-        tag: latest
-        pullPolicy: Always
+cat _labels.tpl
 
-global:
-  environment:
-    name: dev
-    ingress:
-      subdomain: dev.pks.vpayusa.net
+{{- define "vpay.labels.standard" -}}
+{{ template "vpay.labels.app" . }}
+{{ template "vpay.labels.name" . }}
+{{ template "vpay.labels.instance" . }}
+{{ template "vpay.labels.partof" . }}
+{{ template "vpay.labels.chart" . }}
+{{ template "vpay.labels.managed-by" . }}
+{{ template "vpay.labels.cluster-domain" . }}
+{{- end -}}
 
-remittance-partner-network:
-  replicas: 1
-  enabled: true
-  contentRoot: /app
-  image:
-    name: optum/opay-remittance-partner-network
-  listeningPort: 8080
-  probes:
-    readiness:
-      endpoint: /actuator/health
-    liveness:
-      endpoint: /actuator/health
+{{- define "vpay.labels.app" -}}
+  {{- $fullname := include "vpay.name.full" . -}}
+  {{- $environment := include "vpay.environment.name" . -}}
+app: {{ printf "%s-%s" $fullname $environment | lower | trimAll "-" }}
+{{- end -}}
 
-  resources:
-    requests:
-      cpu: 1000m
-      memory: 2560Mi
-    limits:
-      cpu: 1000m
-      memory: 2560Mi
+{{- define "vpay.labels.name" -}}
+app.kubernetes.io/name: {{ template "vpay.name" . }}
+{{- end -}}
 
-  secrets:
-    appsettings.secure.json:
-      mount: true
-      data:
-        b2bSendIndicator:
-          PARTNER_B2B_SEND_INDICATOR: ["salucro=false", "patientpay=true"]
-        clientAuthEndpoint:
-          PARTNER_CLIENTAUTHENDPOINT: ["salucro=https://cognito.salucro-qa.net/oauth2/token", "patientpay=https://optum-dev.patientpay.net/token"]
-        clientKey:
-          PARTNER_CLIENTKEY: ["salucro=client_id", "patientpay=client_id"]
-        clientSecretKey:
-          PARTNER_CLIENTSECRETKEY: ["salucro=client_secret", "patientpay=client_secret"]
-        scopeValue:
-          PARTNER_SCOPEVALUE: ["salucro=app/vcard_stp.api.vpay", "patientpay=openid"]
-        sendIndicator:
-          PARTNER_SEND_INDICATOR: ["salucro=true", "patientpay=true"]
-        serviceEndpoint:
-          PARTNER_SERVICEENDPOINT: ["salucro=https://pti-api.salucro-qa.net/vcard/vpay/c2b", "patientpay=https://optum-dev.patientpay.net/transaction"]
+{{- define "vpay.labels.instance" -}}
+app.kubernetes.io/instance: {{ include "vpay.name.full" . }}
+{{- end -}}
 
-  env:
-    graylog_level: debug
-    winston_silent_console: 'false'
-    graylog_handle_exceptions: 'true'
-    graylog_facility: remittance-partner-network
-    graylog_servers: "nonprod-syslog.vpayusa.net"
-    DD_LOGS_INJECTION: "true"
+{{- define "vpay.labels.partof" -}}
+  {{- $gpre := include "vpay.optional.global.prefix" . -}}
+  {{- $name := include "vpay.name" . -}}
+app.kubernetes.io/part-of: {{ default $name $gpre }}
+{{- end -}}
 
-  podAnnotations:
-    admission.datadoghq.com/dotnet-lib.version: v3.24.1
+{{- define "vpay.labels.chart" -}}
+  {{- $gpre := include "vpay.optional.global.prefix" . -}}
+  {{- $base := printf "%s-%s" .Chart.Name .Chart.Version -}}
+helm.sh/chart: {{ printf "%s-%s" $gpre $base | lower | trimAll "-" }}
+{{- end -}}
 
-  podLabels:
-    admission.datadoghq.com/enabled: "true"
+{{- define "vpay.labels.managed-by" -}}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
 
-  # ➕ Init containers
-  initContainers:
-    - name: init-wait-for-db
-      image: busybox:1.36
-      command: ['sh', '-c', 'until nc -z db-service 5432; do echo waiting for db; sleep 2; done;']
-    - name: init-permissions
-      image: alpine:3.20
-      command: ['sh', '-c', 'chown -R 1000:1000 /app/data']
-      volumeMounts:
-        - name: app-data
-          mountPath: /app/data
+{{- define "vpay.labels.cluster-domain" -}}
+app.kubernetes.io/cluster-domain: {{ template "vpay.environment.ingressSubdomain" . }}
+{{- end -}}
+
+
+
+cat _podmetaspec.tpl 
+
+{{- define "vpay.podmetaspec.tpl" -}}
+
+  {{- $hasMountedSecrets := false -}}
+  {{- range $key, $value := default (dict) .Values.secrets -}}
+    {{- if (include "vpay.util.trueenabled" $value.mount) -}}
+      {{- $hasMountedSecrets = true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $hasMountedConfigMaps := false -}}
+  {{- range $key, $value := default (dict) .Values.configMaps -}}
+    {{- if (include "vpay.util.trueenabled" $value.mount) -}}
+      {{- $hasMountedConfigMaps = true -}}
+    {{- end -}}
+  {{- end -}}
+
+metadata:
+  labels: {{ include "vpay.labels.standard" . | nindent 4 }}
+{{- if (or .Values.secretEnv $hasMountedSecrets $hasMountedConfigMaps) }}
+  annotations:
+  {{- if (.Values.secretEnv) }}
+    {{ include "vpay.secret.secretEnv.checksums" . | indent 4 | trim }}
+  {{- end }}
+  {{- if $hasMountedSecrets }}
+    {{ include "vpay.secret.checksums" . | indent 4 | trim }}
+  {{- end }}
+  {{- if $hasMountedConfigMaps }}
+    {{ include "vpay.configmap.checksums" . | indent 4 | trim }}
+  {{- end }}
+{{- end }}
+spec:
+  containers:
+    - {{ include "vpay.container.tpl" . | indent 6 | trim }}
+      {{- range $key, $val := default (dict) .Values.sidecar }}
+      {{- $r := deepCopy $ }}
+      {{- $portName := printf "%s-port" $key -}}
+      {{- $_ := unset (unset (unset (unset (unset $r.Values "resources") "secretEnv") "serviceExposePort") "listeningPort") "probes" -}}
+      {{- if (.secretEnv) }}
+        {{- fail "secretEnv can only be set on the primary container; it is not currently supported in sidecar containers." }}
+      {{- end }}
+      {{- $_ := mergeOverwrite $r (set (dict) "Values" (set (set . "portName" $portName) "containerName" $key)) }}
+    - {{ include "vpay.container.tpl" $r | indent 6 | trim }}
+      {{- end }}
+  {{- if (dig "experimentalFeatures" "podAntiAffinity" "enabled" (true) .Values) }}
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: "app.kubernetes.io/name"
+                  operator: In
+                  values:
+                    - {{ template "vpay.name" . }}
+                - key: "app.kubernetes.io/instance"
+                  operator: In
+                  values:
+                    - {{ template "vpay.name.full" . }}
+            topologyKey: "kubernetes.io/hostname"
+  {{- end }}
+  {{- if .hasMountedVolumes }}
+  volumes:
+    {{- if (include "vpay.util.anymounted.secret" .Values.secrets) }}
+      {{- include "vpay.secret.volumes" . | trim | nindent 4 }}
+    {{- end }}
+    {{- if (include "vpay.util.anymounted.secret" .Values.configMaps) }}
+      {{- include "vpay.configmap.volumes" . | trim | nindent 4 }}
+    {{- end }}
+    {{- if (include "vpay.util.anymounted.share" (dict "mountPoints" .Values.mountNfs "shares" $.__GlobalValues.nfsShares)) }}
+      {{- include "vpay.pvc.nfs.volumes" . | trim | nindent 4 }}
+    {{- end }}
+    {{- if (include "vpay.util.anymounted.share" (dict "mountPoints" .Values.mountSmb "shares" $.__GlobalValues.smbShares)) }}
+      {{- include "vpay.pvc.smb.volumes" . | trim | nindent 4 }}
+    {{- end }}
+    {{- if (include "vpay.util.anymounted.share" (dict "mountPoints" .Values.mountEmptyDir "shares" (dict))) }}
+      {{- include "vpay.emptyDir.volumes" . | trim | nindent 4 }}
+    {{- end }}
+    {{- if (include "vpay.util.anymounted.share" (dict "mountPoints" .Values.mountPersistentVolumeClaims "shares" (dict))) }}
+      {{- include "vpay.pvc-raw.volumes" . | trim | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.serviceAccountName }}
+  serviceAccountName: {{ .Values.serviceAccountName }}
+  {{- end }}
+  {{- if not (eq (.Values.podActiveDeadlineSeconds | toString) "<nil>") }}
+  activeDeadlineSeconds: {{ int .Values.podActiveDeadlineSeconds }}
+  {{- end }}
+  {{- if not (eq (.Values.restartPolicy | toString) "<nil>") }}
+  restartPolicy: {{ .Values.restartPolicy }}
+  {{- end }}
+  {{- if not (eq (.Values.terminationGracePeriodSeconds | toString) "<nil>") }}
+  terminationGracePeriodSeconds: {{ int .Values.terminationGracePeriodSeconds }}
+  {{- end }}
+
+{{- end -}}

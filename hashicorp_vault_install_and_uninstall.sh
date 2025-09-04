@@ -32,6 +32,7 @@ remittance-partner-network:
       endpoint: /actuator/health
     liveness:
       endpoint: /actuator/health
+
   resources:
     requests:
       cpu: 1000m
@@ -39,6 +40,7 @@ remittance-partner-network:
     limits:
       cpu: 1000m
       memory: 2560Mi
+
   secrets:
     appsettings.secure.json:
       mount: true
@@ -58,21 +60,28 @@ remittance-partner-network:
         serviceEndpoint:
           PARTNER_SERVICEENDPOINT: ["salucro=https://pti-api.salucro-qa.net/vcard/vpay/c2b", "patientpay=https://optum-dev.patientpay.net/transaction"]
 
-  # Existing environment variables
   env:
     graylog_level: debug
     winston_silent_console: 'false'
     graylog_handle_exceptions: 'true'
     graylog_facility: remittance-partner-network
     graylog_servers: "nonprod-syslog.vpayusa.net"
-
-    # ➕ Datadog env vars
     DD_LOGS_INJECTION: "true"
 
-  # ➕ Pod annotations
   podAnnotations:
     admission.datadoghq.com/dotnet-lib.version: v3.24.1
 
-  # ➕ Pod labels
   podLabels:
     admission.datadoghq.com/enabled: "true"
+
+  # ➕ Init containers
+  initContainers:
+    - name: init-wait-for-db
+      image: busybox:1.36
+      command: ['sh', '-c', 'until nc -z db-service 5432; do echo waiting for db; sleep 2; done;']
+    - name: init-permissions
+      image: alpine:3.20
+      command: ['sh', '-c', 'chown -R 1000:1000 /app/data']
+      volumeMounts:
+        - name: app-data
+          mountPath: /app/data

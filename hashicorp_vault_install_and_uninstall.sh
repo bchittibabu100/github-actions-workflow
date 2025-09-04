@@ -1,53 +1,3 @@
-cat _labels.tpl
-
-{{- define "vpay.labels.standard" -}}
-{{ template "vpay.labels.app" . }}
-{{ template "vpay.labels.name" . }}
-{{ template "vpay.labels.instance" . }}
-{{ template "vpay.labels.partof" . }}
-{{ template "vpay.labels.chart" . }}
-{{ template "vpay.labels.managed-by" . }}
-{{ template "vpay.labels.cluster-domain" . }}
-{{- end -}}
-
-{{- define "vpay.labels.app" -}}
-  {{- $fullname := include "vpay.name.full" . -}}
-  {{- $environment := include "vpay.environment.name" . -}}
-app: {{ printf "%s-%s" $fullname $environment | lower | trimAll "-" }}
-{{- end -}}
-
-{{- define "vpay.labels.name" -}}
-app.kubernetes.io/name: {{ template "vpay.name" . }}
-{{- end -}}
-
-{{- define "vpay.labels.instance" -}}
-app.kubernetes.io/instance: {{ include "vpay.name.full" . }}
-{{- end -}}
-
-{{- define "vpay.labels.partof" -}}
-  {{- $gpre := include "vpay.optional.global.prefix" . -}}
-  {{- $name := include "vpay.name" . -}}
-app.kubernetes.io/part-of: {{ default $name $gpre }}
-{{- end -}}
-
-{{- define "vpay.labels.chart" -}}
-  {{- $gpre := include "vpay.optional.global.prefix" . -}}
-  {{- $base := printf "%s-%s" .Chart.Name .Chart.Version -}}
-helm.sh/chart: {{ printf "%s-%s" $gpre $base | lower | trimAll "-" }}
-{{- end -}}
-
-{{- define "vpay.labels.managed-by" -}}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
-
-{{- define "vpay.labels.cluster-domain" -}}
-app.kubernetes.io/cluster-domain: {{ template "vpay.environment.ingressSubdomain" . }}
-{{- end -}}
-
-
-
-cat _podmetaspec.tpl 
-
 {{- define "vpay.podmetaspec.tpl" -}}
 
   {{- $hasMountedSecrets := false -}}
@@ -64,19 +14,26 @@ cat _podmetaspec.tpl
   {{- end -}}
 
 metadata:
-  labels: {{ include "vpay.labels.standard" . | nindent 4 }}
-{{- if (or .Values.secretEnv $hasMountedSecrets $hasMountedConfigMaps) }}
+  labels:
+    {{ include "vpay.labels.standard" . | nindent 4 }}
+    {{- with .Values.podLabels }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+
   annotations:
-  {{- if (.Values.secretEnv) }}
+    {{- if (.Values.secretEnv) }}
     {{ include "vpay.secret.secretEnv.checksums" . | indent 4 | trim }}
-  {{- end }}
-  {{- if $hasMountedSecrets }}
+    {{- end }}
+    {{- if $hasMountedSecrets }}
     {{ include "vpay.secret.checksums" . | indent 4 | trim }}
-  {{- end }}
-  {{- if $hasMountedConfigMaps }}
+    {{- end }}
+    {{- if $hasMountedConfigMaps }}
     {{ include "vpay.configmap.checksums" . | indent 4 | trim }}
-  {{- end }}
-{{- end }}
+    {{- end }}
+    {{- with .Values.podAnnotations }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+
 spec:
   containers:
     - {{ include "vpay.container.tpl" . | indent 6 | trim }}

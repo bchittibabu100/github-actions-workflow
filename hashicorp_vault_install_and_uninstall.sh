@@ -1,23 +1,36 @@
-I see empty lines before and after annotation and labels.
-
-  template:
-    metadata:
-      labels:
-
-        app: bartok-bartok-outbound-worker-b-development
-        app.kubernetes.io/name: bartok-outbound-worker-b
-        app.kubernetes.io/instance: bartok-bartok-outbound-worker-b
-        app.kubernetes.io/part-of: bartok-outbound-worker-b
-        helm.sh/chart: bartok-0.0.1
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/cluster-domain: dev.pks.vpayusa.net
-
-        admission.datadoghq.com/enabled: "true"
-
-      annotations:
-        checksum/appsettings.secure.json: a99911b2c42202d68144174245f80f430d54856a35d06ac9df8e536b954f039b
-
-        admission.datadoghq.com/dotnet-lib.version: v3.24.1
-
-    spec:
-      containers:
+{{- define "vpay.podmetaspec.tpl" -}}
+metadata:
+  labels:
+    {{- include "vpay.labels.name" . | nindent 4 }}
+    {{- include "vpay.labels.instance" . | nindent 4 }}
+    {{- with .Values.podLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- with .Values.podAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceAccountName: {{ include "vpay.serviceAccountName" . }}
+  containers:
+    - name: {{ include "vpay.fullname" . }}
+      image: "{{ .Values.global.image.registry }}/{{ .Values.image.name }}:{{ .Values.global.image.tag | default .Chart.AppVersion }}"
+      imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+      ports:
+        - name: http
+          containerPort: {{ .Values.listeningPort }}
+      env:
+        {{- with .Values.env }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      resources:
+        {{- toYaml .Values.resources | nindent 8 }}
+      livenessProbe:
+        httpGet:
+          path: {{ .Values.probes.liveness.endpoint }}
+          port: http
+      readinessProbe:
+        httpGet:
+          path: {{ .Values.probes.readiness.endpoint }}
+          port: http
+{{- end }}

@@ -1,9 +1,20 @@
-Here is the portion of my config.ini file will look like and would like to replace the value by fetching from hashicorp vault using ansible playbook. Give me playbook which works with this template.
-
-
 [CheckNumberDatabase]
-# `Vault Helper` deployment task in bamboo will replace anything inside of double curly braces in any text file that is targeted by it.
-hostname={{ vault "dba/Accounts/Application/stage/PLATFORM/OCFParser" "hostname" }}
-password={{ vault "dba/Accounts/Application/stage/PLATFORM/OCFParser" "password" }}
-username={{ vault "dba/Accounts/Application/stage/PLATFORM/OCFParser" "username" }}
-database={{ vault "dba/Accounts/Application/stage/PLATFORM/OCFParser" "database" }}
+hostname={{ lookup('community.hashi_vault.hashi_vault', 'dba/Accounts/Application/stage/PLATFORM/OCFParser:hostname', auth_method='token', token=vault_token, url=vault_addr) }}
+password={{ lookup('community.hashi_vault.hashi_vault', 'dba/Accounts/Application/stage/PLATFORM/OCFParser:password', auth_method='token', token=vault_token, url=vault_addr) }}
+username={{ lookup('community.hashi_vault.hashi_vault', 'dba/Accounts/Application/stage/PLATFORM/OCFParser:username', auth_method='token', token=vault_token, url=vault_addr) }}
+database={{ lookup('community.hashi_vault.hashi_vault', 'dba/Accounts/Application/stage/PLATFORM/OCFParser:database', auth_method='token', token=vault_token, url=vault_addr) }}
+
+---
+- name: Generate config.ini from Vault
+  hosts: all
+  vars:
+    vault_addr: "http://127.0.0.1:8200"   # Replace with your Vault address
+    vault_token: "{{ lookup('env', 'VAULT_TOKEN') }}"  # Read token from env
+  tasks:
+    - name: Template config.ini with Vault secrets
+      ansible.builtin.template:
+        src: templates/config.ini.j2
+        dest: /etc/myapp/config.ini
+        owner: myuser
+        group: mygroup
+        mode: '0640'

@@ -1,87 +1,51 @@
-#######################################
-## This Dockerfile requires BuildKit ##
-#######################################
+ARG JAVA_VERSION=17
+ARG MAVEN_VERSION=3.9.9
+ARG DOCKER_REGISTRY_URL="docker.repo1.tvc.com"
 
-## General arguments
-ARG REGISTRY=jfrog.vpayusa.net/plinfharbor
-ARG DOTNET_VERSION=6.0
-ARG DOTNET_SDK_VARIANT=commit-master
-ARG DOTNET_RUNTIME_VARIANT=commit-master
-ARG BASE_SDK_IMAGE=dotnet-bogner-sdk
-ARG BASE_RUNTIME_IMAGE=dotnet-bogner-aspnetcore
+FROM centraltvc.jfrog.io/glb-docker-uhg-loc/uhg-goldenimages/jdk:openjdk-17-latest-dev as build
+USER root
 
-## Build Stage
-FROM ${REGISTRY}/base-images/${BASE_SDK_IMAGE}-${DOTNET_VERSION}:${DOTNET_SDK_VARIANT} as build
+RUN --mount=type=secret,id=jf-user \
+    --mount=type=secret,id=jf-token \
+    sh -c 'echo "https://edgeinternal1tvc.tpc.com/artifactory/glb-alpine-apk-chainguard-rem $(cat /run/secrets/jf-user):$(cat /run/secrets/jf-token)" > /etc/apk/auth.conf \
+    && echo "https://edgeinternal1tvc.tpc.com/artifactory/glb-alpine-extras-chainguard-rem $(cat /run/secrets/jf-user):$(cat /run/secrets/jf-token)" >> /etc/apk/auth.conf \
+    && export HTTP_AUTH="basic:edgeinternal1tvc.tpc.com:$(cat /run/secrets/jf-user):$(cat /run/secrets/jf-token)" \
+    && apk update \
+    && apk add --no-cache tzdata \
+    && cp /usr/share/zoneinfo/America/Chicago /etc/localtime \
+    && echo "America/Chicago" > /etc/timezone'
+    apk add maven~=3.9.9
 
-## Build stage arguments
-ARG CONFIG_PROFILE=Release
-ARG PROJECT_DIR
-ARG PROJECT_NAME
+COPY src /build/src
+COPY pom.xml /build
+COPY settings.xml /build
+WORKDIR /build
+RUN sed -i '/<servers>/a\
+  <server>\
+    <id>uhg-snapshots</id>\
+    <username>'"$jf-user"'</username>\
+    <password>'"$jf-token"'</password>\
+  </server>\
+  <server>\
+    <id>edge</id>\
+    <username>'"$jf-user"'</username>\
+    <password>'"$jf-token"'</password>\
+  </server>' /build/settings.xml
+RUN mvn -s settings.xml clean package -DskipTests
 
-ENV PROJECT=${PROJECT_DIR}/${PROJECT_NAME}.csproj
-WORKDIR /app
+FROM centraluhg.jfrog.io/optumpay-docker-np-loc/opay-temurin-alpine-jdk17:stable
 
-COPY nuget.config* ./
-COPY *.sln ./
+# Copy required files
+COPY --from=build /build/target/opay-remittance-partner-network.jar /app.jar
 
-## Copy .csproj files into the correct file structure
-SHELL ["/bin/bash", "-O", "globstar", "-c"]
-RUN --mount=target=docker_build_context \
-cd docker_build_context;\
-cp **/*.csproj ../ --parents;
-RUN rm -rf docker_build_context
-SHELL ["/bin/sh", "-c"]
+COPY ./entrypoint.sh /entrypoint.sh
+RUN ["chmod", "+rwx", "/entrypoint.sh"]
+RUN ["chmod", "+rwx", "/app.jar"]
 
-## Restore project
-RUN dotnet restore ${PROJECT}
-## Copy all files if restore succeeds
-COPY . ./
-## Publish project without restoring
-RUN dotnet publish --no-restore -c ${CONFIG_PROFILE} -o /app/out ${PROJECT}
+# Create spring user and group with specific IDs to use with the securityContext key on the deployment file
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
 
-## New stage used to reduce the size of the final image
-FROM $REGISTRY/base-images/${BASE_RUNTIME_IMAGE}-${DOTNET_VERSION}:${DOTNET_RUNTIME_VARIANT} AS final
-## Final stage arguments
-ARG PROJECT_NAME
-
-COPY --chown=bogner:bogner src/requirements_py3.txt /
-COPY --chown=bogner:bogner lib/*.deb .
-
-# TODO: split into Dockerfile.bogner.python
-RUN apt-get update \
-    && ACCEPT_EULA=y apt-get install -y --no-install-recommends \
-        default-jre-headless \
-        "g++" \
-        jq \
-        libbcprov-java \
-        libcommons-lang3-java \
-        libmysqlclient-dev \
-        msodbcsql18 \
-        python3-dev \
-        python3-pip \
-    && dpkg -i ./*.deb \
-    && python3 -m pip install --upgrade \
-        pip \
-        "setuptools<58" \
-        wheel \
-    && python3 -m pip install --upgrade -r /requirements_py3.txt \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -f ./*.deb
-
-WORKDIR /app
-
-COPY --from=build --chown=bogner:bogner /app/out .
-ENV ASPNETCORE_URLS=http://+:8080
-
-## Create a symlink so we can use exec form entrypoint
-RUN ln -s ${PROJECT_NAME}.dll Entrypoint.dll
-
-# Changing user after creating symbolic link to ensure user has permission to create that link
-USER bogner:bogner
-
-ENTRYPOINT [ "dotnet", "Entrypoint.dll" ]
-
-## Optionally add image build time
-ARG IMAGE_BUILD_TIME
-ENV IMAGE_BUILD_TIME ${IMAGE_BUILD_TIME}
+# Start the application
+EXPOSE 8080
+ENTRYPOINT ["/bin/sh","/entrypoint.sh"]

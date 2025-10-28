@@ -1,0 +1,39 @@
+To achieve dynamic, secure access to your JFrog Artifactory for Docker pulls/pushes and package downloads (NuGet, Maven, NPM, APT) in GitHub Actions for your .NET, Java, and Node.js projects, you will need to inject these credentials at runtime into each respective package manager and tool. Here’s how this can be orchestrated for each technology stack, using GitHub Actions and environment variables for credentials propagation.Dynamic Credential Injection OverviewCredentials: Dynamically generated via workflow, set as GitHub Actions outputs or environment variables.Endpoints: Central (pull), Edge (push)—same credentials.Usage: All package managers (NuGet, Maven, NPM, and apt-get) support authentication either via config files or CLI environment variables.Dotnet 8 with NuGet (NuGet Feeds from JFrog)To authenticate NuGet against JFrog, inject credentials into a NuGet.Config file at build time:- name: Set up NuGet config with JFrog credentials
+  run: |
+    dotnet nuget add source https://jfrog-central-endpoint/artifactory/api/nuget/your-feed \
+      --name jfrog \
+      --username ${{ steps.jfrog_creds.outputs.username }} \
+      --password ${{ steps.jfrog_creds.outputs.password }} \
+      --store-password-in-clear-textUse dotnet restore as normal; credentials are picked from config.Java with Maven (Maven Feeds from JFrog)For secure Maven authentication, inject a settings.xml file:- name: Configure Maven credentials
+  run: |
+    mkdir -p $HOME/.m2
+    cat > $HOME/.m2/settings.xml <<EOF
+    <settings>
+      <servers>
+        <server>
+          <id>jfrog-repo</id>
+          <username>${{ steps.jfrog_creds.outputs.username }}</username>
+          <password>${{ steps.jfrog_creds.outputs.password }}</password>
+        </server>
+      </servers>
+    </settings>
+    EOFIn your pom.xml, map the repository’s <id> to jfrog-repo.Node 22 with NPM (NPM Feeds from JFrog)To authenticate npm:- name: Set up .npmrc with JFrog credentials
+  run: |
+    echo "//jfrog-central-endpoint/artifactory/api/npm/your-feed/:_authToken=${{ steps.jfrog_creds.outputs.apitoken }}" > .npmrc
+    npm installYou can also use basic auth by echoing username and password into .npmrc as _auth (base64 encoded).Docker Build & Publish (Pull and Push)Docker login to both endpoints:- name: Docker login for central (pull)
+  run: |
+    echo ${{ steps.jfrog_creds.outputs.password }} | docker login jfrog-central-endpoint --username ${{ steps.jfrog_creds.outputs.username }} --password-stdin
+
+- name: Docker login for edge (push)
+  run: |
+    echo ${{ steps.jfrog_creds.outputs.password }} | docker login jfrog-edge-endpoint --username ${{ steps.jfrog_creds.outputs.username }} --password-stdin
+
+- name: Build and push Docker image
+  run: |
+    docker build -t jfrog-edge-endpoint/your-image:tag .
+    docker push jfrog-edge-endpoint/your-image:tagAPT (apt-get install with JFrog as source)To use JFrog as an APT repo:- name: Configure APT auth for JFrog
+  run: |
+    echo "machine jfrog-central-endpoint login ${{ steps.jfrog_creds.outputs.username }} password ${{ steps.jfrog_creds.outputs.password }}" > ~/.netrc
+    echo "deb [trusted=yes] https://jfrog-central-endpoint/artifactory/your-apt-repo/ bionic main" | sudo tee /etc/apt/sources.list.d/jfrog.list
+    sudo apt-get update
+    sudo apt-get install your-packageThe .netrc ensures authenticated apt-get requests.Security and Best PracticesNever hardcode secrets. Pass via GitHub Actions outputs or environment variables.Remove temporary files (like .npmrc or .netrc) after use if your workflow context is shared.Use GitHub Encrypted Secrets to bootstrap initial credentials exchange if necessary.By applying these patterns in your GitHub Actions, you ensure that all projects securely access JFrog resources dynamically across different package and Docker needs.ReferencesGitHub Actions with JFrog Artifactory: Dynamic Credential ManagementAuth with NuGet, Maven, npm, APT for JFrog CLI/ReposAdvanced Docker/JFrog Github Actions Usage

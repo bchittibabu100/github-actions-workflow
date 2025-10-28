@@ -1,0 +1,292 @@
+I'll help you create a comprehensive solution for handling JFrog credentials and Docker builds across your three projects. Here's a structured approach:
+
+1. GitHub Workflow Setup
+
+First, create a reusable workflow that generates credentials and handles the Docker operations:
+
+.github/workflows/docker-build.yml
+
+```yaml
+name: Docker Build and Push
+
+on:
+  workflow_call:
+    inputs:
+      project-type:
+        required: true
+        type: choice
+        options:
+          - dotnet
+          - java
+          - node
+      dockerfile-path:
+        required: true
+        type: string
+      image-name:
+        required: true
+        type: string
+      jfrog-pull-endpoint:
+        required: true
+        type: string
+      jfrog-push-endpoint:
+        required: true
+        type: string
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      jfrog-username: ${{ steps.jfrog-creds.outputs.username }}
+      jfrog-password: ${{ steps.jfrog-creds.outputs.password }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Generate JFrog credentials
+      id: jfrog-creds
+      run: |
+        # Your dynamic credential generation logic here
+        USERNAME="dynamic-user-${{ github.run_id }}"
+        PASSWORD="dynamic-pass-${{ github.run_id }}"
+        echo "username=$USERNAME" >> $GITHUB_OUTPUT
+        echo "password=$PASSWORD" >> $GITHUB_OUTPUT
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and Push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ${{ inputs.dockerfile-path }}
+        push: true
+        tags: |
+          ${{ inputs.jfrog-push-endpoint }}/${{ inputs.image-name }}:latest
+          ${{ inputs.jfrog-push-endpoint }}/${{ inputs.image-name }}:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        secrets: |
+          "JFROG_USERNAME=${{ steps.jfrog-creds.outputs.username }}"
+          "JFROG_PASSWORD=${{ steps.jfrog-creds.outputs.password }}"
+          "JFROG_PULL_ENDPOINT=${{ inputs.jfrog-pull-endpoint }}"
+```
+
+2. Project-Specific Workflows
+
+DotNet Project (.github/workflows/dotnet-docker.yml)
+
+```yaml
+name: DotNet Docker Build
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'dotnet-project/**' ]
+
+jobs:
+  docker-build:
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      project-type: dotnet
+      dockerfile-path: "dotnet-project/Dockerfile"
+      image-name: "my-org/dotnet-app"
+      jfrog-pull-endpoint: "central.jfrog.example.com"
+      jfrog-push-endpoint: "edge.jfrog.example.com"
+    secrets: inherit
+```
+
+Java Project (.github/workflows/java-docker.yml)
+
+```yaml
+name: Java Docker Build
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'java-project/**' ]
+
+jobs:
+  docker-build:
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      project-type: java
+      dockerfile-path: "java-project/Dockerfile"
+      image-name: "my-org/java-app"
+      jfrog-pull-endpoint: "central.jfrog.example.com"
+      jfrog-push-endpoint: "edge.jfrog.example.com"
+    secrets: inherit
+```
+
+Node Project (.github/workflows/node-docker.yml)
+
+```yaml
+name: Node Docker Build
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'node-project/**' ]
+
+jobs:
+  docker-build:
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      project-type: node
+      dockerfile-path: "node-project/Dockerfile"
+      image-name: "my-org/node-app"
+      jfrog-pull-endpoint: "central.jfrog.example.com"
+      jfrog-push-endpoint: "edge.jfrog.example.com"
+    secrets: inherit
+```
+
+3. Project-Specific Dockerfiles
+
+DotNet Dockerfile
+
+```dockerfile
+# dotnet-project/Dockerfile
+FROM central.jfrog.example.com/dotnet/sdk:8.0 AS build
+
+# Install packages from JFrog using dynamic credentials
+RUN --mount=type=secret,id=JFROG_USERNAME \
+    --mount=type=secret,id=JFROG_PASSWORD \
+    --mount=type=secret,id=JFROG_PULL_ENDPOINT \
+    export JFROG_USERNAME=$(cat /run/secrets/JFROG_USERNAME) && \
+    export JFROG_PASSWORD=$(cat /run/secrets/JFROG_PASSWORD) && \
+    export JFROG_ENDPOINT=$(cat /run/secrets/JFROG_PULL_ENDPOINT) && \
+    # Configure NuGet with JFrog credentials
+    dotnet nuget add source https://${JFROG_ENDPOINT}/api/nuget/v3/index.json \
+      --name jfrog --username ${JFROG_USERNAME} --password ${JFROG_PASSWORD} --store-password-in-clear-text
+
+WORKDIR /src
+COPY . .
+RUN dotnet restore --configfile NuGet.config
+RUN dotnet publish -c Release -o /app/publish
+
+FROM central.jfrog.example.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "MyApp.dll"]
+```
+
+Java Dockerfile
+
+```dockerfile
+# java-project/Dockerfile
+FROM central.jfrog.example.com/eclipse-temurin:21-jdk AS build
+
+# Install system packages from JFrog
+RUN --mount=type=secret,id=JFROG_USERNAME \
+    --mount=type=secret,id=JFROG_PASSWORD \
+    --mount=type=secret,id=JFROG_PULL_ENDPOINT \
+    export JFROG_USERNAME=$(cat /run/secrets/JFROG_USERNAME) && \
+    export JFROG_PASSWORD=$(cat /run/secrets/JFROG_PASSWORD) && \
+    export JFROG_ENDPOINT=$(cat /run/secrets/JFROG_PULL_ENDPOINT) && \
+    echo "deb https://${JFROG_USERNAME}:${JFROG_PASSWORD}@${JFROG_ENDPOINT}/apt-repo stable main" > /etc/apt/sources.list.d/jfrog.list && \
+    apt-get update && \
+    apt-get install -y your-custom-packages
+
+WORKDIR /workspace/app
+COPY . .
+RUN --mount=type=secret,id=JFROG_USERNAME \
+    --mount=type=secret,id=JFROG_PASSWORD \
+    --mount=type=secret,id=JFROG_PULL_ENDPOINT \
+    export JFROG_USERNAME=$(cat /run/secrets/JFROG_USERNAME) && \
+    export JFROG_PASSWORD=$(cat /run/secrets/JFROG_PASSWORD) && \
+    ./mvnw -s settings.xml clean package
+
+FROM central.jfrog.example.com/eclipse-temurin:21-jre
+COPY --from=build /workspace/app/target/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+```
+
+Node Dockerfile
+
+```dockerfile
+# node-project/Dockerfile
+FROM central.jfrog.example.com/node:22-alpine AS build
+
+# Install system packages from JFrog
+RUN --mount=type=secret,id=JFROG_USERNAME \
+    --mount=type=secret,id=JFROG_PASSWORD \
+    --mount=type=secret,id=JFROG_PULL_ENDPOINT \
+    export JFROG_USERNAME=$(cat /run/secrets/JFROG_USERNAME) && \
+    export JFROG_PASSWORD=$(cat /run/secrets/JFROG_PASSWORD) && \
+    export JFROG_ENDPOINT=$(cat /run/secrets/JFROG_PULL_ENDPOINT) && \
+    echo "https://${JFROG_USERNAME}:${JFROG_PASSWORD}@${JFROG_ENDPOINT}/alpine/main" >> /etc/apk/repositories && \
+    apk update && \
+    apk add your-custom-packages
+
+WORKDIR /app
+COPY . .
+RUN --mount=type=secret,id=JFROG_USERNAME \
+    --mount=type=secret,id=JFROG_PASSWORD \
+    --mount=type=secret,id=JFROG_PULL_ENDPOINT \
+    export JFROG_USERNAME=$(cat /run/secrets/JFROG_USERNAME) && \
+    export JFROG_PASSWORD=$(cat /run/secrets/JFROG_PASSWORD) && \
+    export JFROG_ENDPOINT=$(cat /run/secrets/JFROG_PULL_ENDPOINT) && \
+    echo "registry=https://${JFROG_ENDPOINT}/api/npm/npm-virtual/" > .npmrc && \
+    echo "${JFROG_ENDPOINT}/api/npm/npm-virtual/:_auth=${JFROG_USERNAME}:${JFROG_PASSWORD}" >> .npmrc && \
+    npm ci --only=production
+
+FROM central.jfrog.example.com/node:22-alpine
+WORKDIR /app
+COPY --from=build /app .
+USER node
+CMD ["node", "server.js"]
+```
+
+4. Supporting Configuration Files
+
+Java Maven settings.xml
+
+```xml
+<!-- java-project/settings.xml -->
+<settings>
+    <servers>
+        <server>
+            <id>jfrog</id>
+            <username>${env.JFROG_USERNAME}</username>
+            <password>${env.JFROG_PASSWORD}</password>
+        </server>
+    </servers>
+    <mirrors>
+        <mirror>
+            <id>jfrog</id>
+            <name>JFrog Mirror</name>
+            <url>https://${env.JFROG_PULL_ENDPOINT}/artifactory/maven-virtual/</url>
+            <mirrorOf>*</mirrorOf>
+        </mirror>
+    </mirrors>
+</settings>
+```
+
+DotNet NuGet.config
+
+```xml
+<!-- dotnet-project/NuGet.config -->
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <packageSources>
+        <clear />
+        <add key="jfrog" value="https://${env.JFROG_PULL_ENDPOINT}/api/nuget/v3/index.json" />
+    </packageSources>
+    <packageSourceCredentials>
+        <jfrog>
+            <add key="Username" value="${env.JFROG_USERNAME}" />
+            <add key="ClearTextPassword" value="${env.JFROG_PASSWORD}" />
+        </jfrog>
+    </packageSourceCredentials>
+</configuration>
+```
+
+Key Points:
+
+1. Secret Management: Using Docker BuildKit secrets to securely pass credentials
+2. Multi-stage Builds: Separate build and runtime stages for security
+3. Project-specific Configs: Each technology stack has appropriate configuration
+4. Dynamic Credentials: Credentials are generated per workflow run and used consistently
+5. Endpoints: Central endpoint for pulling base images, edge endpoint for pushing built images
+
+This setup ensures secure handling of dynamic credentials while supporting all three technology stacks with their specific package management requirements.

@@ -1,0 +1,200 @@
+Perfect — you’ve got a multi-language GitHub Actions workflow that dynamically fetches JFrog credentials (token + username) from a managed JFrog service, and you need to use them consistently for:
+
+1. Docker pull (from central JFrog registry)
+
+
+2. Docker push (to edge JFrog registry)
+
+
+3. Package managers inside each build (NuGet, Maven, NPM)
+
+
+4. apt-get installs inside Dockerfiles (using JFrog as Debian repo source)
+
+
+
+Let’s go step-by-step on how to structure this cleanly, across all languages and Docker contexts.
+
+
+---
+
+🔧 Step 1 — Generate and Export JFrog Credentials
+
+In your workflow, you already have a job that gets credentials.
+Let’s assume it sets outputs like this:
+
+jobs:
+  jfrog-creds:
+    runs-on: ubuntu-latest
+    outputs:
+      jf_user: ${{ steps.creds.outputs.jf_user }}
+      jf_token: ${{ steps.creds.outputs.jf_token }}
+    steps:
+      - id: creds
+        run: |
+          echo "jf_user=myuser" >> $GITHUB_OUTPUT
+          echo "jf_token=mytoken" >> $GITHUB_OUTPUT
+
+
+---
+
+🐳 Step 2 — Use JFrog Credentials for Docker Pull & Push
+
+In dependent jobs, you can log in to both registries using those outputs.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    needs: jfrog-creds
+    env:
+      JF_USER: ${{ needs.jfrog-creds.outputs.jf_user }}
+      JF_TOKEN: ${{ needs.jfrog-creds.outputs.jf_token }}
+      JF_PULL_REGISTRY: centraltvc.jfrog.io
+      JF_PUSH_REGISTRY: edgetvc.jfrog.io
+    steps:
+      - name: Docker login for pull
+        run: echo "$JF_TOKEN" | docker login "$JF_PULL_REGISTRY" -u "$JF_USER" --password-stdin
+
+      - name: Docker login for push
+        run: echo "$JF_TOKEN" | docker login "$JF_PUSH_REGISTRY" -u "$JF_USER" --password-stdin
+
+      - name: Build and push
+        run: |
+          docker build -t $JF_PUSH_REGISTRY/myproj:latest .
+          docker push $JF_PUSH_REGISTRY/myproj:latest
+
+✅ Both pull and push are authenticated using the same dynamic credentials.
+
+
+---
+
+📦 Step 3 — Use Credentials in Package Managers
+
+Each language has its own config location.
+Let’s inject credentials dynamically before build.
+
+A. .NET 8 / NuGet
+
+Create or modify ~/.nuget/NuGet/NuGet.Config:
+
+- name: Setup NuGet with JFrog
+  run: |
+    mkdir -p ~/.nuget/NuGet
+    cat > ~/.nuget/NuGet/NuGet.Config <<EOF
+    <configuration>
+      <packageSources>
+        <add key="jfrog" value="https://centraltvc.jfrog.io/artifactory/api/nuget/nuget-virtual" />
+      </packageSources>
+      <packageSourceCredentials>
+        <jfrog>
+          <add key="Username" value="${JF_USER}" />
+          <add key="ClearTextPassword" value="${JF_TOKEN}" />
+        </jfrog>
+      </packageSourceCredentials>
+    </configuration>
+    EOF
+
+Then your build command (e.g. dotnet restore) will pull from JFrog securely.
+
+
+---
+
+B. Java / Maven
+
+Create or update ~/.m2/settings.xml:
+
+- name: Setup Maven with JFrog
+  run: |
+    mkdir -p ~/.m2
+    cat > ~/.m2/settings.xml <<EOF
+    <settings>
+      <servers>
+        <server>
+          <id>jfrog</id>
+          <username>${JF_USER}</username>
+          <password>${JF_TOKEN}</password>
+        </server>
+      </servers>
+      <mirrors>
+        <mirror>
+          <id>central</id>
+          <url>https://centraltvc.jfrog.io/artifactory/maven-virtual</url>
+          <mirrorOf>*</mirrorOf>
+        </mirror>
+      </mirrors>
+    </settings>
+    EOF
+
+Your pom.xml should then reference jfrog server ID or the virtual repo directly.
+
+
+---
+
+C. Node.js / NPM
+
+Update .npmrc dynamically before install:
+
+- name: Setup npm with JFrog
+  run: |
+    cat > ~/.npmrc <<EOF
+    registry=https://centraltvc.jfrog.io/artifactory/api/npm/npm-virtual/
+    always-auth=true
+    _auth=$(echo -n "${JF_USER}:${JF_TOKEN}" | base64)
+    email=build@ci.local
+    EOF
+
+Then run npm ci or npm install.
+
+
+---
+
+🧱 Step 4 — apt-get install inside Dockerfiles (using same credentials)
+
+You can pass credentials securely into Docker builds using BuildKit secrets.
+
+- name: Build Docker image with APT creds
+  run: |
+    docker build \
+      --secret id=jf-user,env=JF_USER \
+      --secret id=jf-token,env=JF_TOKEN \
+      -t myimage:latest .
+
+In your Dockerfile:
+
+# syntax=docker/dockerfile:1.6
+
+FROM ubuntu:22.04
+
+# Use BuildKit secrets for secure inline auth
+RUN --mount=type=secret,id=jf-user \
+    --mount=type=secret,id=jf-token \
+    bash -c '
+      JF_USER=$(cat /run/secrets/jf-user)
+      JF_TOKEN=$(cat /run/secrets/jf-token)
+      echo "deb [trusted=yes] https://${JF_USER}:${JF_TOKEN}@centraltvc.jfrog.io/artifactory/debian/ focal main" > /etc/apt/sources.list.d/jfrog.list &&
+      apt-get update &&
+      apt-get install -y curl make git &&
+      rm -rf /var/lib/apt/lists/*
+    '
+
+✅ This way you don’t hardcode any credentials, and your APT repo pulls from JFrog using the same dynamic creds.
+
+
+---
+
+🧩 Summary Matrix
+
+Layer	Purpose	How Credentials Used
+
+Docker Pull	Base image	docker login to centraltvc.jfrog.io
+Docker Push	Publish built image	docker login to edgetvc.jfrog.io
+.NET	NuGet restore	Inject NuGet.Config with creds
+Java	Maven build	Inject settings.xml with creds
+Node.js	NPM install	Inject .npmrc with creds
+APT	System deps in Docker	Use BuildKit secrets for apt sources
+
+
+
+---
+
+Would you like me to show a consolidated workflow example that includes all three projects in a single YAML (matrix strategy for dotnet/maven/npm)?

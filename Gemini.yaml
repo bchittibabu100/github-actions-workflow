@@ -6,32 +6,52 @@ metadata:
 spec:
   service:
     type: NodePort
-
-root@mo066devlwork1:~/test-gw# vim gateway-class.yaml
-
+root@mo066devlwork1:~/test-gw# kubectl apply -f cilium-gateway-class-config.yaml
+ciliumgatewayclassconfig.cilium.io/cilium-nodeport unchanged
+root@mo066devlwork1:~/test-gw# kubectl get ciliumgatewayclassconfigs.cilium.io
+NAME              ACCEPTED   AGE
+cilium-nodeport   True       16m
+root@mo066devlwork1:~/test-gw# cat gateway-class.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: cilium-nodeport
+spec:
+  controllerName: io.cilium/gateway-controller
+  parametersRef:
+    group: cilium.io
+    kind: CiliumGatewayClassConfig
+    name: cilium-nodeport
 root@mo066devlwork1:~/test-gw# kubectl apply -f gateway-class.yaml
-gatewayclass.gateway.networking.k8s.io/cilium-nodeport created
-
+gatewayclass.gateway.networking.k8s.io/cilium-nodeport unchanged
 root@mo066devlwork1:~/test-gw# kubectl get gatewayclass
 NAME              CONTROLLER                     ACCEPTED   AGE
 cilium            io.cilium/gateway-controller   True       5d11h
-cilium-nodeport   io.cilium/gateway-controller   False      19s
-
-root@mo066devlwork1:~/test-gw# vim gateway.yaml
-
-root@mo066devlwork1:~/test-gw# kubectl apply -f gateway.yaml
-gateway.gateway.networking.k8s.io/test-gateway configured
-
-root@mo066devlwork1:~/test-gw# kubectl get gatewayclass
-NAME              CONTROLLER                     ACCEPTED   AGE
-cilium            io.cilium/gateway-controller   True       5d11h
-cilium-nodeport   io.cilium/gateway-controller   False      96s
-
-root@mo066devlwork1:~/test-gw# kubectl get gateway -n test-gw
-NAME           CLASS             ADDRESS   PROGRAMMED   AGE
-test-gateway   cilium-nodeport             False        19m
-
-root@mo066devlwork1:~/test-gw# kubectl get svc -n test-gw
-NAME                          TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
-cilium-gateway-test-gateway   LoadBalancer   10.103.219.199   <pending>     80:31523/TCP   19m
-echo                          ClusterIP      10.99.56.34      <none>        80/TCP         20m
+cilium-nodeport   io.cilium/gateway-controller   False      12m
+root@mo066devlwork1:~/test-gw# kubectl describe gatewayclass cilium-nodeport
+Name:         cilium-nodeport
+Namespace:
+Labels:       <none>
+Annotations:  <none>
+API Version:  gateway.networking.k8s.io/v1
+Kind:         GatewayClass
+Metadata:
+  Creation Timestamp:  2026-01-06T05:33:02Z
+  Generation:          1
+  Resource Version:    3434318
+  UID:                 c789fbe0-1c64-48b6-b087-3547ed3195b1
+Spec:
+  Controller Name:  io.cilium/gateway-controller
+  Parameters Ref:
+    Group:  cilium.io
+    Kind:   CiliumGatewayClassConfig
+    Name:   cilium-nodeport
+Status:
+  Conditions:
+    Last Transition Time:  2026-01-06T05:33:02Z
+    Message:               Invalid GatewayClass
+    Observed Generation:   1
+    Reason:                InvalidParameters
+    Status:                False
+    Type:                  Accepted
+Events:                    <none>

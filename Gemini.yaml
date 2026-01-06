@@ -1,126 +1,43 @@
-That sounds like a common scenario in CI/CD involving dynamic credentials and multiple technologies. You'll need to use your dynamic GitHub output credentials to configure the package managers (NuGet, Maven, npm) for dependency resolution and the Docker build context for apt-get downloads.
-Here's how to approach it for your three projects, focusing on using the dynamic credentials for both package management and apt-get within Docker builds:
-🔑 Using Dynamic GitHub Outputs
-First, ensure your dynamic credentials (let's call them JFROG_USER and JFROG_PASSWORD) are correctly set as environment variables in the workflow steps that follow the credential generation step.
-In your workflow, the step using the credentials would look something like this:
-- name: Set JFrog Credentials
-  env:
-    # Assuming 'credentials_step' is the ID of the step that generates the outputs
-    JFROG_USER: ${{ steps.credentials_step.outputs.username }}
-    JFROG_PASSWORD: ${{ steps.credentials_step.outputs.password }}
-  run: |
-    echo "JFROG_USER=$JFROG_USER" >> $GITHUB_ENV
-    echo "JFROG_PASSWORD=$JFROG_PASSWORD" >> $GITHUB_ENV
+root@mo066devlwork1:~# cilium status
+    /¯¯\
+ /¯¯\__/¯¯\    Cilium:             OK
+ \__/¯¯\__/    Operator:           OK
+ /¯¯\__/¯¯\    Envoy DaemonSet:    OK
+ \__/¯¯\__/    Hubble Relay:       OK
+    \__/       ClusterMesh:        disabled
 
-Now, the JFROG_USER and JFROG_PASSWORD will be available in subsequent steps.
-📦 Project-Specific Package Configuration
-For your package managers, you'll need to configure them to use the credentials and the appropriate endpoints (central for pull/resolution) before the build step.
-1. 🟢 Node.js with npm (npm install)
- * Setup: Configure the npm registry to use a token or basic authentication. Basic authentication with username and password is often easiest in a CI environment.
- * Step: Use the npm config set command in your workflow.
-<!-- end list -->
-- name: Configure npm for JFrog Registry
-  run: |
-    # Add the central registry endpoint and configure authentication
-    npm config set @scope:registry https://your-jfrog-central-endpoint/api/npm/npm-virtual/
-    npm config set _auth $(echo -n "$JFROG_USER:$JFROG_PASSWORD" | base64)
-    npm config set always-auth true
-  env:
-    JFROG_USER: ${{ env.JFROG_USER }}
-    JFROG_PASSWORD: ${{ env.JFROG_PASSWORD }}
-
-> Note: Replace @scope and npm-virtual with your specific setup.
-> 
-2. 🔷 .NET 8 with NuGet (dotnet restore)
- * Setup: Add the JFrog feed as a source using the username and password.
- * Step: Use the dotnet nuget add source command.
-<!-- end list -->
-- name: Configure NuGet for JFrog Feed
-  run: |
-    dotnet nuget add source "https://your-jfrog-central-endpoint/api/nuget/nuget-virtual" \
-      --name "JFrogFeed" \
-      --username "${{ env.JFROG_USER }}" \
-      --password "${{ env.JFROG_PASSWORD }}" \
-      --store-password-in-clear-text
-
-3. ☕ Java with Maven (mvn install/package)
- * Setup: You'll need to create a settings.xml file dynamically with the JFrog server details and credentials, then tell Maven to use it.
- * Step: Use an action or shell script to create the file.
-<!-- end list -->
-- name: Create Maven settings.xml
-  run: |
-    mkdir -p ~/.m2
-    cat > ~/.m2/settings.xml << EOF
-    <settings>
-      <servers>
-        <server>
-          <id>jfrog-server</id>
-          <username>${{ env.JFROG_USER }}</username>
-          <password>${{ env.JFROG_PASSWORD }}</password>
-        </server>
-      </servers>
-      <profiles>
-        <profile>
-          <id>artifactory</id>
-          <repositories>
-            <repository>
-              <id>jfrog-server</id>
-              <url>https://your-jfrog-central-endpoint/api/maven/maven-virtual</url>
-            </repository>
-          </repositories>
-        </profile>
-      </profiles>
-      <activeProfiles>
-        <activeProfile>artifactory</activeProfile>
-      </activeProfiles>
-    </settings>
-    EOF
-
-🐳 Docker Build with Dynamic Credentials for apt-get
-For apt-get install inside your Dockerfile to pull packages from JFrog, you need to use build arguments (--build-arg) to pass the credentials and then configure apt within the Docker build.
-1. ⚙️ Modify the Dockerfile
-Update your Dockerfile to accept the credentials and use them to configure apt before the install command.
-# Dockerfile snippet
-ARG JFROG_USER
-ARG JFROG_PASSWORD
-
-# Set up the credentials for apt-get
-# This uses the credentials to configure apt's basic auth for the repository
-RUN echo "machine your-jfrog-central-endpoint/api/apt/apt-virtual login ${JFROG_USER} password ${JFROG_PASSWORD}" > /etc/apt/auth.conf
-
-# Now you can apt-get install from your private JFrog repo
-RUN apt-get update && apt-get install -y \
-    your-private-package \
-    another-package
-
-# Optional: Clear the credentials from the final image layer for security
-RUN rm /etc/apt/auth.conf
-
-2. 🚀 Run Docker Build in the Workflow
-Pass the environment variables as build arguments during the docker build step.
-- name: Docker Build with JFrog apt-get access
-  run: |
-    docker build . \
-      --build-arg JFROG_USER=${{ env.JFROG_USER }} \
-      --build-arg JFROG_PASSWORD=${{ env.JFROG_PASSWORD }} \
-      -t your-image:latest
-
-🚢 Docker Login (Pull and Push)
-Before the build (for pulling base images if they are in JFrog) and before the push, you need to log in to the respective endpoints. Since the credentials are the same for both, you can use them for two separate docker login commands.
-- name: Docker Login for Pull (Central)
-  run: |
-    echo "${{ env.JFROG_PASSWORD }}" | docker login your-jfrog-central-endpoint \
-      --username "${{ env.JFROG_USER }}" \
-      --password-stdin
-
-- name: Docker Login for Push (Edge)
-  run: |
-    echo "${{ env.JFROG_PASSWORD }}" | docker login your-jfrog-edge-endpoint \
-      --username "${{ env.JFROG_USER }}" \
-      --password-stdin
-
-- name: Push Docker Image
-  run: |
-    docker push your-jfrog-edge-endpoint/your-image:latest
-
-Would you like me to generate a complete example GitHub Actions workflow file for one of these projects, like the Node.js project, combining all these steps?
+DaemonSet              cilium                   Desired: 4, Ready: 4/4, Available: 4/4
+DaemonSet              cilium-envoy             Desired: 4, Ready: 4/4, Available: 4/4
+Deployment             cilium-operator          Desired: 2, Ready: 2/2, Available: 2/2
+Deployment             hubble-relay             Desired: 1, Ready: 1/1, Available: 1/1
+Deployment             hubble-ui                Desired: 1, Unavailable: 1/1
+Containers:            cilium                   Running: 4
+                       cilium-envoy             Running: 4
+                       cilium-operator          Running: 2
+                       clustermesh-apiserver
+                       hubble-relay             Running: 1
+                       hubble-ui                Running: 1
+Cluster Pods:          6/6 managed by Cilium
+Helm chart version:    1.18.5
+Image versions         cilium             quay.io/cilium/cilium:v1.18.5@sha256:2c92fb05962a346eaf0ce11b912ba434dc10bd54b9989e970416681f4a069628: 4
+                       cilium-envoy       quay.io/cilium/cilium-envoy:v1.34.12-1765374555-6a93b0bbba8d6dc75b651cbafeedb062b2997716@sha256:3108521821c6922695ff1f6ef24b09026c94b195283f8bfbfc0fa49356a156e1: 4
+                       cilium-operator    quay.io/cilium/operator-generic:v1.18.5@sha256:36c3f6f14c8ced7f45b40b0a927639894b44269dd653f9528e7a0dc363a4eb99: 2
+                       hubble-relay       quay.io/cilium/hubble-relay:v1.18.5@sha256:17212962c92ff52384f94e407ffe3698714fcbd35c7575f67f24032d6224e446: 1
+                       hubble-ui          quay.io/cilium/hubble-ui-backend:v0.13.3@sha256:db1454e45dc39ca41fbf7cad31eec95d99e5b9949c39daaad0fa81ef29d56953: 1
+                       hubble-ui          quay.io/cilium/hubble-ui:v0.13.3@sha256:661d5de7050182d495c6497ff0b007a7a1e379648e60830dd68c4d78ae21761d: 1
+Errors:                hubble-ui          hubble-ui    1 pods of Deployment hubble-ui are not ready
+root@mo066devlwork1:~# kubectl get crds | grep gateway
+backendlbpolicies.gateway.networking.k8s.io    2025-12-31T17:41:54Z
+backendtlspolicies.gateway.networking.k8s.io   2025-12-31T17:46:20Z
+ciliumgatewayclassconfigs.cilium.io            2025-12-22T18:35:40Z
+gatewayclasses.gateway.networking.k8s.io       2025-12-31T17:46:21Z
+gateways.gateway.networking.k8s.io             2025-12-31T17:46:21Z
+grpcroutes.gateway.networking.k8s.io           2025-12-31T17:46:21Z
+httproutes.gateway.networking.k8s.io           2025-12-31T17:46:21Z
+referencegrants.gateway.networking.k8s.io      2025-12-31T17:46:21Z
+tcproutes.gateway.networking.k8s.io            2025-12-31T17:32:47Z
+tlsroutes.gateway.networking.k8s.io            2025-12-31T17:32:47Z
+udproutes.gateway.networking.k8s.io            2025-12-31T17:32:47Z
+root@mo066devlwork1:~# kubectl get gatewayclass
+NAME     CONTROLLER                     ACCEPTED   AGE
+cilium   io.cilium/gateway-controller   True       5d11h

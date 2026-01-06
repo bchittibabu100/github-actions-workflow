@@ -1,73 +1,93 @@
-kubectl create ns test-gw
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: echo
-  namespace: test-gw
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: echo
-  template:
-    metadata:
-      labels:
-        app: echo
-    spec:
-      containers:
-      - name: echo
-        image: ealen/echo-server
-        ports:
-        - containerPort: 80
+root@mo066devlwork1:~/test-gw# kubectl apply -f deployment.yaml
+deployment.apps/echo created
 
+root@mo066devlwork1:~/test-gw# kubectl get po -n test-gw
+NAME                    READY   STATUS    RESTARTS   AGE
+echo-7556b6d69c-smfrw   1/1     Running   0          7s
 
-kubectl apply -f echo.yaml
+root@mo066devlwork1:~/test-gw# kubectl apply -f service.yaml
+service/echo created
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: echo
-  namespace: test-gw
-spec:
-  selector:
-    app: echo
-  ports:
-  - port: 80
-    targetPort: 80
+root@mo066devlwork1:~/test-gw# kubectl get svc -n test-gw
+NAME   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+echo   ClusterIP   10.99.56.34   <none>        80/TCP    9s
 
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: test-gateway
-  namespace: test-gw
-spec:
-  gatewayClassName: cilium
-  listeners:
-  - name: http
-    protocol: HTTP
-    port: 80
+root@mo066devlwork1:~/test-gw# kubectl apply -f gateway.yaml
+gateway.gateway.networking.k8s.io/test-gateway created
 
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: echo-route
-  namespace: test-gw
-spec:
-  parentRefs:
-  - name: test-gateway
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: echo
-      port: 80
+root@mo066devlwork1:~/test-gw# kubectl apply -f http_route.yaml
+httproute.gateway.networking.k8s.io/echo-route created
 
-kubectl get gateway -n test-gw
+root@mo066devlwork1:~/test-gw# kubectl get gateway -n test-gw
+NAME           CLASS    ADDRESS   PROGRAMMED   AGE
+test-gateway   cilium             False        39s
 
-kubectl describe gateway test-gateway -n test-gw
+root@mo066devlwork1:~/test-gw# kubectl describe gateway test-gateway -n test-gw
+Name:         test-gateway
+Namespace:    test-gw
+Labels:       <none>
+Annotations:  <none>
+API Version:  gateway.networking.k8s.io/v1
+Kind:         Gateway
+Metadata:
+  Creation Timestamp:  2026-01-06T05:15:26Z
+  Generation:          1
+  Resource Version:    3432154
+  UID:                 f32fb9ae-5d5b-4e97-a386-e2b54e2254d1
+Spec:
+  Gateway Class Name:  cilium
+  Listeners:
+    Allowed Routes:
+      Namespaces:
+        From:  Same
+    Name:      http
+    Port:      80
+    Protocol:  HTTP
+Status:
+  Conditions:
+    Last Transition Time:  2026-01-06T05:15:26Z
+    Message:               Gateway successfully scheduled
+    Observed Generation:   1
+    Reason:                Accepted
+    Status:                True
+    Type:                  Accepted
+    Last Transition Time:  2026-01-06T05:15:26Z
+    Message:               Gateway waiting for address
+    Observed Generation:   1
+    Reason:                AddressNotAssigned
+    Status:                False
+    Type:                  Programmed
+  Listeners:
+    Attached Routes:  1
+    Conditions:
+      Last Transition Time:  2026-01-06T05:15:57Z
+      Message:               Resolved Refs
+      Observed Generation:   1
+      Reason:                ResolvedRefs
+      Status:                True
+      Type:                  ResolvedRefs
+      Last Transition Time:  2026-01-06T05:15:57Z
+      Message:               Listener Accepted
+      Observed Generation:   1
+      Reason:                Accepted
+      Status:                True
+      Type:                  Accepted
+      Last Transition Time:  2026-01-06T05:15:57Z
+      Message:               Address not ready yet
+      Observed Generation:   1
+      Reason:                Pending
+      Status:                False
+      Type:                  Programmed
+    Name:                    http
+    Supported Kinds:
+      Group:  gateway.networking.k8s.io
+      Kind:   HTTPRoute
+      Group:  gateway.networking.k8s.io
+      Kind:   GRPCRoute
+Events:       <none>
 
-kubectl get svc -A | grep gateway
+root@mo066devlwork1:~/test-gw# kubectl get svc -A | grep test-gw
+test-gw        cilium-gateway-test-gateway     LoadBalancer   10.103.219.199   <pending>     80:31523/TCP                 2m54s
+test-gw        echo                            ClusterIP      10.99.56.34      <none>        80/TCP                       3m47s
 
-curl http://<gateway-ip>/
+lets configure with nodeport as there is no LoadBalancer available right now.

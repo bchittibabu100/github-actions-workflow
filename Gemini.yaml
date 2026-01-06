@@ -1,70 +1,68 @@
-root@mo066devlwork1:~/test-gw# kubectl get cm cilium-config -n kube-system -o yaml | grep "enable-lb-ipam"
-  enable-lb-ipam: "false"
-      {"apiVersion":"v1","data":{"agent-not-ready-taint-key":"node.cilium.io/agent-not-ready","auto-direct-node-routes":"false","bpf-distributed-lru":"false","bpf-events-drop-enabled":"true","bpf-events-policy-verdict-enabled":"true","bpf-events-trace-enabled":"true","bpf-lb-acceleration":"disabled","bpf-lb-algorithm-annotation":"false","bpf-lb-external-clusterip":"false","bpf-lb-map-max":"65536","bpf-lb-mode-annotation":"false","bpf-lb-sock":"false","bpf-lb-source-range-all-types":"false","bpf-map-dynamic-size-ratio":"0.0025","bpf-policy-map-max":"16384","bpf-policy-stats-map-max":"65536","bpf-root":"/sys/fs/bpf","cgroup-root":"/run/cilium/cgroupv2","cilium-endpoint-gc-interval":"5m0s","cluster-id":"0","cluster-name":"kubernetes","cluster-pool-ipv4-cidr":"10.0.0.0/8","cluster-pool-ipv4-mask-size":"24","clustermesh-enable-endpoint-sync":"false","clustermesh-enable-mcs-api":"false","cni-exclusive":"true","cni-log-file":"/var/run/cilium/cilium-cni.log","custom-cni-conf":"false","datapath-mode":"veth","debug":"false","debug-verbose":"","default-lb-service-ipam":"lbipam","direct-routing-skip-unreachable":"false","dnsproxy-enable-transparent-mode":"false","dnsproxy-socket-linger-timeout":"10","egress-gateway-reconciliation-trigger-interval":"1s","enable-auto-protect-node-port-range":"true","enable-bpf-clock-probe":"false","enable-endpoint-health-checking":"true","enable-endpoint-lockdown-on-policy-overflow":"false","enable-health-check-loadbalancer-ip":"false","enable-health-check-nodeport":"true","enable-health-checking":"true","enable-hubble":"true","enable-internal-traffic-policy":"true","enable-ipv4":"true","enable-ipv4-big-tcp":"false","enable-ipv4-masquerade":"true","enable-ipv6":"false","enable-ipv6-big-tcp":"false","enable-ipv6-masquerade":"true","enable-k8s-networkpolicy":"true","enable-l2-neigh-discovery":"false","enable-l7-proxy":"true","enable-lb-ipam":"true","enable-masquerade-to-route-source":"false","enable-metrics":"true","enable-node-selector-labels":"false","enable-non-default-deny-policies":"true","enable-policy":"default","enable-policy-secrets-sync":"true","enable-sctp":"false","enable-source-ip-verification":"true","enable-svc-source-range-check":"true","enable-tcx":"true","enable-vtep":"false","enable-well-known-identities":"false","enable-xt-socket-fallback":"true","envoy-access-log-buffer-size":"4096","envoy-base-id":"0","envoy-keep-cap-netbindservice":"false","external-envoy-proxy":"true","health-check-icmp-failure-threshold":"3","http-retry-count":"3","hubble-disable-tls":"false","hubble-listen-address":":4244","hubble-network-policy-correlation-enabled":"true","hubble-socket-path":"/var/run/cilium/hubble.sock","hubble-tls-cert-file":"/var/lib/cilium/tls/hubble/server.crt","hubble-tls-client-ca-files":"/var/lib/cilium/tls/hubble/client-ca.crt","hubble-tls-key-file":"/var/lib/cilium/tls/hubble/server.key","identity-allocation-mode":"crd","identity-gc-interval":"15m0s","identity-heartbeat-timeout":"30m0s","identity-management-mode":"agent","install-no-conntrack-iptables-rules":"false","ipam":"cluster-pool","ipam-cilium-node-update-rate":"15s","iptables-random-fully":"false","k8s-require-ipv4-pod-cidr":"false","k8s-require-ipv6-pod-cidr":"false","kube-proxy-replacement":"true","kube-proxy-replacement-healthz-bind-address":"","max-connected-clusters":"255","mesh-auth-enabled":"true","mesh-auth-gc-interval":"5m0s","mesh-auth-queue-size":"1024","mesh-auth-rotated-identities-queue-size":"1024","metrics-sampling-interval":"5m","monitor-aggregation":"medium","monitor-aggregation-flags":"all","monitor-aggregation-interval":"5s","nat-map-stats-entries":"32","nat-map-stats-interval":"30s","node-port-bind-protection":"true","nodeport-addresses":"","nodes-gc-interval":"5m0s","operator-api-serve-addr":"127.0.0.1:9234","operator-prometheus-serve-addr":":9963","policy-cidr-match-mode":"","policy-default-local-cluster":"false","policy-secrets-namespace":"cilium-secrets","policy-secrets-only-from-secrets-namespace":"true","preallocate-bpf-maps":"false","procfs":"/host/proc","proxy-connect-timeout":"2","proxy-idle-timeout-seconds":"60","proxy-initial-fetch-timeout":"30","proxy-max-concurrent-retries":"128","proxy-max-connection-duration-seconds":"0","proxy-max-requests-per-connection":"0","proxy-xff-num-trusted-hops-egress":"0","proxy-xff-num-trusted-hops-ingress":"0","remove-cilium-node-taints":"true","routing-mode":"tunnel","service-no-backend-response":"reject","set-cilium-is-up-condition":"true","set-cilium-node-taints":"true","synchronize-k8s-nodes":"true","tofqdns-dns-reject-response-code":"refused","tofqdns-enable-dns-compression":"true","tofqdns-endpoint-max-ip-per-hostname":"1000","tofqdns-idle-connection-grace-period":"0s","tofqdns-max-deferred-connection-deletes":"10000","tofqdns-preallocate-identities":"true","tofqdns-proxy-response-max-delay":"100ms","tunnel-protocol":"vxlan","tunnel-source-port-range":"0-0","unmanaged-pod-watcher-interval":"15","vtep-cidr":"","vtep-endpoint":"","vtep-mac":"","vtep-mask":"","write-cni-conf-when-ready":"/host/etc/cni/net.d/05-cilium.conflist"},"kind":"ConfigMap","metadata":{"annotations":{"meta.helm.sh/release-name":"cilium","meta.helm.sh/release-namespace":"kube-system"},"creationTimestamp":"2025-12-19T07:10:08Z","labels":{"app.kubernetes.io/managed-by":"Helm"},"name":"cilium-config","namespace":"kube-system","resourceVersion":"165078","uid":"e5bb513b-7ffd-4d55-8def-d78f073c142a"}}
-root@mo066devlwork1:~/test-gw# kubectl describe gateway -n test-gw test-gateway
-Name:         test-gateway
+root@mo066devlwork1:~/test-gw# kubectl get httproute -n test-gw
+NAME         HOSTNAMES   AGE
+echo-route               2m54s
+root@mo066devlwork1:~/test-gw# kubectl describe httproute echo-route -n test-gw
+Name:         echo-route
 Namespace:    test-gw
 Labels:       <none>
 Annotations:  <none>
 API Version:  gateway.networking.k8s.io/v1
-Kind:         Gateway
+Kind:         HTTPRoute
 Metadata:
-  Creation Timestamp:  2026-01-06T21:42:46Z
+  Creation Timestamp:  2026-01-06T21:49:41Z
   Generation:          1
-  Resource Version:    3537205
-  UID:                 54e48c35-52d2-4213-a97b-857b17b54512
+  Resource Version:    3538454
+  UID:                 b6de1a6d-ac0d-4fb3-b66e-07b19a390acf
 Spec:
-  Gateway Class Name:  cilium
-  Listeners:
-    Allowed Routes:
-      Namespaces:
-        From:  Same
-    Name:      http
-    Port:      80
-    Protocol:  HTTP
+  Parent Refs:
+    Group:  gateway.networking.k8s.io
+    Kind:   Gateway
+    Name:   test-gateway
+  Rules:
+    Backend Refs:
+      Group:
+      Kind:    Service
+      Name:    echo
+      Port:    80
+      Weight:  1
+    Matches:
+      Path:
+        Type:   PathPrefix
+        Value:  /
 Status:
-  Conditions:
-    Last Transition Time:  2026-01-06T21:42:46Z
-    Message:               Gateway successfully scheduled
-    Observed Generation:   1
-    Reason:                Accepted
-    Status:                True
-    Type:                  Accepted
-    Last Transition Time:  2026-01-06T21:42:46Z
-    Message:               Gateway waiting for address
-    Observed Generation:   1
-    Reason:                AddressNotAssigned
-    Status:                False
-    Type:                  Programmed
-  Listeners:
-    Attached Routes:  0
+  Parents:
     Conditions:
-      Last Transition Time:  2026-01-06T21:42:46Z
-      Message:               Resolved Refs
-      Observed Generation:   1
-      Reason:                ResolvedRefs
-      Status:                True
-      Type:                  ResolvedRefs
-      Last Transition Time:  2026-01-06T21:42:46Z
-      Message:               Listener Accepted
+      Last Transition Time:  2026-01-06T21:49:41Z
+      Message:               Accepted HTTPRoute
       Observed Generation:   1
       Reason:                Accepted
       Status:                True
       Type:                  Accepted
-      Last Transition Time:  2026-01-06T21:42:46Z
-      Message:               Address not ready yet
+      Last Transition Time:  2026-01-06T21:49:41Z
+      Message:               Service reference is valid
       Observed Generation:   1
-      Reason:                Pending
-      Status:                False
-      Type:                  Programmed
-    Name:                    http
-    Supported Kinds:
+      Reason:                ResolvedRefs
+      Status:                True
+      Type:                  ResolvedRefs
+    Controller Name:         io.cilium/gateway-controller
+    Parent Ref:
       Group:  gateway.networking.k8s.io
-      Kind:   HTTPRoute
-      Group:  gateway.networking.k8s.io
-      Kind:   GRPCRoute
+      Kind:   Gateway
+      Name:   test-gateway
 Events:       <none>
+root@mo066devlwork1:~/test-gw# curl http://mo066devlwork2.vpayusa.net:30561
+upstream connect error or disconnect/reset before headers. reset reason: connection timeoutroot@mo066devlwork1:~/test-gw#
 root@mo066devlwork1:~/test-gw# kubectl get svc -n test-gw
 NAME                          TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-cilium-gateway-test-gateway   LoadBalancer   10.111.117.64   <pending>     80:30561/TCP   3m29s
-echo                          ClusterIP      10.96.77.246    <none>        80/TCP         34m
+cilium-gateway-test-gateway   LoadBalancer   10.111.117.64   <pending>     80:30561/TCP   11m
+echo                          ClusterIP      10.96.77.246    <none>        80/TCP         43m
+root@mo066devlwork1:~/test-gw# kubectl get nodes -o wide
+NAME                         STATUS   ROLES           AGE   VERSION    INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+mo066devlwork1.vpayusa.net   Ready    control-plane   19d   v1.29.15   10.140.90.62   <none>        Ubuntu 24.04.3 LTS   6.8.0-90-generic   containerd://1.7.28
+mo066devlwork2.vpayusa.net   Ready    <none>          18d   v1.29.15   10.140.90.63   <none>        Ubuntu 24.04.3 LTS   6.8.0-90-generic   containerd://1.7.28
+mo066devlwork3.vpayusa.net   Ready    <none>          18d   v1.29.15   10.140.90.64   <none>        Ubuntu 24.04.3 LTS   6.8.0-90-generic   containerd://1.7.28
+mo066devlwork4.vpayusa.net   Ready    <none>          18d   v1.29.15   10.140.90.65   <none>        Ubuntu 24.04.3 LTS   6.8.0-63-generic   containerd://1.7.28
+root@mo066devlwork1:~/test-gw# curl http://10.140.90.63:30561
+
+
+upstream connect error or disconnect/reset before headers. reset reason: connection timeoutroot@mo066devlwork1:~/test-gw#

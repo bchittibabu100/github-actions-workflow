@@ -1,7 +1,23 @@
-root@mo066devlwork1:~/test-gw# kubectl get ds -n kube-system
-NAME           DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
-cilium         4         4         2       2            2           kubernetes.io/os=linux   17d
-cilium-envoy   4         4         4       4            4           kubernetes.io/os=linux   3d12h
-kube-proxy     4         4         4       4            4           kubernetes.io/os=linux   17d
-root@mo066devlwork1:~/test-gw# kubectl scale ds -n kube-system kube-proxy --replicas=0
-Error from server (NotFound): the server could not find the requested resource
+root@mo066devlwork1:~/test-gw# kubectl get po -n kube-system
+NAME                                                 READY   STATUS             RESTARTS           AGE
+cilium-75fxt                                         1/1     Running            0                  3d12h
+cilium-9tlfg                                         1/1     Running            0                  3d12h
+cilium-cncnn                                         0/1     CrashLoopBackOff   4 (39s ago)        2m21s
+cilium-envoy-284zl                                   1/1     Running            0                  3d12h
+cilium-envoy-bsn5w                                   1/1     Running            0                  3d12h
+cilium-envoy-kkvq2                                   1/1     Running            0                  3d12h
+cilium-envoy-xgt6c                                   1/1     Running            0                  3d12h
+cilium-k2sdw                                         0/1     CrashLoopBackOff   4 (34s ago)        2m21s
+cilium-operator-5f7ccc6f75-6vbnv                     1/1     Running            1 (9s ago)         38s
+cilium-operator-5f7ccc6f75-87qk6                     1/1     Running            0                  38s
+coredns-768b8f4548-cr956                             1/1     Running            0                  17d
+coredns-768b8f4548-nrkc5                             1/1     Running            0                  17d
+dns-test-new2                                        0/1     Completed          0                  17d
+etcd-mo066devlwork1.vpayusa.net                      1/1     Running            0                  18d
+hubble-relay-6f997576f8-nlfnn                        0/1     CrashLoopBackOff   7 (4m27s ago)      5d12h
+hubble-ui-6788c6c48d-kcs6d                           1/2     CrashLoopBackOff   1565 (4m42s ago)   5d13h
+kube-apiserver-mo066devlwork1.vpayusa.net            1/1     Running            3 (3d12h ago)      18d
+kube-controller-manager-mo066devlwork1.vpayusa.net   1/1     Running            7 (3d12h ago)      18d
+kube-scheduler-mo066devlwork1.vpayusa.net            1/1     Running            6 (3d12h ago)      18d
+root@mo066devlwork1:~/test-gw# kubectl logs -n kube-system cilium-cncnn | grep "level=error"
+time=2026-01-06T06:16:22.595113967Z level=error msg="Invoke failed" error="invalid value for kube-proxy-replacement" function="cmd.kvstoreLocksGC (cmd/cells.go:433)"

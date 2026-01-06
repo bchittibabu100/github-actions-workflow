@@ -1,43 +1,73 @@
-root@mo066devlwork1:~# cilium status
-    /¯¯\
- /¯¯\__/¯¯\    Cilium:             OK
- \__/¯¯\__/    Operator:           OK
- /¯¯\__/¯¯\    Envoy DaemonSet:    OK
- \__/¯¯\__/    Hubble Relay:       OK
-    \__/       ClusterMesh:        disabled
+kubectl create ns test-gw
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo
+  namespace: test-gw
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo
+  template:
+    metadata:
+      labels:
+        app: echo
+    spec:
+      containers:
+      - name: echo
+        image: ealen/echo-server
+        ports:
+        - containerPort: 80
 
-DaemonSet              cilium                   Desired: 4, Ready: 4/4, Available: 4/4
-DaemonSet              cilium-envoy             Desired: 4, Ready: 4/4, Available: 4/4
-Deployment             cilium-operator          Desired: 2, Ready: 2/2, Available: 2/2
-Deployment             hubble-relay             Desired: 1, Ready: 1/1, Available: 1/1
-Deployment             hubble-ui                Desired: 1, Unavailable: 1/1
-Containers:            cilium                   Running: 4
-                       cilium-envoy             Running: 4
-                       cilium-operator          Running: 2
-                       clustermesh-apiserver
-                       hubble-relay             Running: 1
-                       hubble-ui                Running: 1
-Cluster Pods:          6/6 managed by Cilium
-Helm chart version:    1.18.5
-Image versions         cilium             quay.io/cilium/cilium:v1.18.5@sha256:2c92fb05962a346eaf0ce11b912ba434dc10bd54b9989e970416681f4a069628: 4
-                       cilium-envoy       quay.io/cilium/cilium-envoy:v1.34.12-1765374555-6a93b0bbba8d6dc75b651cbafeedb062b2997716@sha256:3108521821c6922695ff1f6ef24b09026c94b195283f8bfbfc0fa49356a156e1: 4
-                       cilium-operator    quay.io/cilium/operator-generic:v1.18.5@sha256:36c3f6f14c8ced7f45b40b0a927639894b44269dd653f9528e7a0dc363a4eb99: 2
-                       hubble-relay       quay.io/cilium/hubble-relay:v1.18.5@sha256:17212962c92ff52384f94e407ffe3698714fcbd35c7575f67f24032d6224e446: 1
-                       hubble-ui          quay.io/cilium/hubble-ui-backend:v0.13.3@sha256:db1454e45dc39ca41fbf7cad31eec95d99e5b9949c39daaad0fa81ef29d56953: 1
-                       hubble-ui          quay.io/cilium/hubble-ui:v0.13.3@sha256:661d5de7050182d495c6497ff0b007a7a1e379648e60830dd68c4d78ae21761d: 1
-Errors:                hubble-ui          hubble-ui    1 pods of Deployment hubble-ui are not ready
-root@mo066devlwork1:~# kubectl get crds | grep gateway
-backendlbpolicies.gateway.networking.k8s.io    2025-12-31T17:41:54Z
-backendtlspolicies.gateway.networking.k8s.io   2025-12-31T17:46:20Z
-ciliumgatewayclassconfigs.cilium.io            2025-12-22T18:35:40Z
-gatewayclasses.gateway.networking.k8s.io       2025-12-31T17:46:21Z
-gateways.gateway.networking.k8s.io             2025-12-31T17:46:21Z
-grpcroutes.gateway.networking.k8s.io           2025-12-31T17:46:21Z
-httproutes.gateway.networking.k8s.io           2025-12-31T17:46:21Z
-referencegrants.gateway.networking.k8s.io      2025-12-31T17:46:21Z
-tcproutes.gateway.networking.k8s.io            2025-12-31T17:32:47Z
-tlsroutes.gateway.networking.k8s.io            2025-12-31T17:32:47Z
-udproutes.gateway.networking.k8s.io            2025-12-31T17:32:47Z
-root@mo066devlwork1:~# kubectl get gatewayclass
-NAME     CONTROLLER                     ACCEPTED   AGE
-cilium   io.cilium/gateway-controller   True       5d11h
+
+kubectl apply -f echo.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo
+  namespace: test-gw
+spec:
+  selector:
+    app: echo
+  ports:
+  - port: 80
+    targetPort: 80
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: test-gateway
+  namespace: test-gw
+spec:
+  gatewayClassName: cilium
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: echo-route
+  namespace: test-gw
+spec:
+  parentRefs:
+  - name: test-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: echo
+      port: 80
+
+kubectl get gateway -n test-gw
+
+kubectl describe gateway test-gateway -n test-gw
+
+kubectl get svc -A | grep gateway
+
+curl http://<gateway-ip>/

@@ -1,8 +1,60 @@
-kubectl -n kube-system patch configmap cilium-config --type merge -p '{
-  "data": {
-    "kube-proxy-replacement": "strict",
-    "kube-proxy-replacement-healthz-bind-address": ":8081",
-    "enable-bpf-masquerade": "true",
-    "enable-kube-proxy": "false"
-  }
-}'
+root@mo066devlwork1:~/test-gw# kubectl describe gateway -n test-gw test-gateway
+Name:         test-gateway
+Namespace:    test-gw
+Labels:       <none>
+Annotations:  <none>
+API Version:  gateway.networking.k8s.io/v1
+Kind:         Gateway
+Metadata:
+  Creation Timestamp:  2026-01-06T21:13:39Z
+  Generation:          1
+  Resource Version:    3533517
+  UID:                 7f1644f7-be59-43ca-8f53-25c7d9c28b2f
+Spec:
+  Gateway Class Name:  cilium-nodeport
+  Listeners:
+    Allowed Routes:
+      Namespaces:
+        From:  Same
+    Name:      http
+    Port:      80
+    Protocol:  HTTP
+Status:
+  Conditions:
+    Last Transition Time:  1970-01-01T00:00:00Z
+    Message:               Waiting for controller
+    Reason:                Pending
+    Status:                Unknown
+    Type:                  Accepted
+    Last Transition Time:  1970-01-01T00:00:00Z
+    Message:               Waiting for controller
+    Reason:                Pending
+    Status:                Unknown
+    Type:                  Programmed
+Events:                    <none>
+root@mo066devlwork1:~/test-gw# kubectl get gatewayclass cilium-nodeport -o yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"gateway.networking.k8s.io/v1","kind":"GatewayClass","metadata":{"annotations":{},"name":"cilium-nodeport"},"spec":{"controllerName":"io.cilium/gateway-controller","parametersRef":{"group":"cilium.io","kind":"CiliumGatewayClassConfig","name":"cilium-nodeport"}}}
+  creationTimestamp: "2026-01-06T05:33:02Z"
+  generation: 1
+  name: cilium-nodeport
+  resourceVersion: "3434318"
+  uid: c789fbe0-1c64-48b6-b087-3547ed3195b1
+spec:
+  controllerName: io.cilium/gateway-controller
+  parametersRef:
+    group: cilium.io
+    kind: CiliumGatewayClassConfig
+    name: cilium-nodeport
+status:
+  conditions:
+  - lastTransitionTime: "2026-01-06T05:33:02Z"
+    message: Invalid GatewayClass
+    observedGeneration: 1
+    reason: InvalidParameters
+    status: "False"
+    type: Accepted

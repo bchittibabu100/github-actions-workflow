@@ -1,22 +1,8 @@
-root@mo066devlwork1:~/test-gw# kubectl -n kube-system patch configmap cilium-config --type merge -p '{"data":{"kube-proxy-replacement":"strict"}}'
-configmap/cilium-config patched (no change)
-
-root@mo066devlwork1:~/test-gw# kubectl -n kube-system rollout restart ds/cilium
-daemonset.apps/cilium restarted
-
-root@mo066devlwork1:~/test-gw# kubectl get po -n kube-system -l k8s-app=cilium
-NAME           READY   STATUS            RESTARTS   AGE
-cilium-75fxt   1/1     Running           0          3d12h
-cilium-9tlfg   1/1     Running           0          3d12h
-cilium-jrqgv   0/1     Running           0          7s
-cilium-t576q   0/1     PodInitializing   0          7s
-
-root@mo066devlwork1:~/test-gw# kubectl get po -n kube-system -l k8s-app=cilium
-NAME           READY   STATUS             RESTARTS     AGE
-cilium-75fxt   1/1     Running            0            3d12h
-cilium-9tlfg   1/1     Running            0            3d12h
-cilium-jrqgv   0/1     CrashLoopBackOff   1 (3s ago)   14s
-cilium-t576q   0/1     CrashLoopBackOff   1 (2s ago)   14s
-
-root@mo066devlwork1:~/test-gw# kubectl logs -n kube-system cilium-jrqgv | grep "level=error"
-time=2026-01-06T06:28:47.584993989Z level=error msg="Invoke failed" error="invalid value for kube-proxy-replacement" function="cmd.kvstoreLocksGC (cmd/cells.go:433)"
+kubectl -n kube-system patch configmap cilium-config --type merge -p '{
+  "data": {
+    "kube-proxy-replacement": "strict",
+    "kube-proxy-replacement-healthz-bind-address": ":8081",
+    "enable-bpf-masquerade": "true",
+    "enable-kube-proxy": "false"
+  }
+}'

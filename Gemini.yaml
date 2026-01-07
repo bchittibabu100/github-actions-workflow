@@ -1,4 +1,41 @@
-The Gateway "test-gateway" is invalid:
-* spec.addresses[0].type: Invalid value: "NodePort": spec.addresses[0].type in body should match '^Hostname|IPAddress|NamedAddress|[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*\/[A-Za-z0-9\/\-._~%!$&'()*+,;=:]+$'
-* spec.addresses[0].value: Required value
-* <nil>: Invalid value: "null": some validation rules were not checked because the object was invalid; correct the existing errors to complete validation
+root@mo066devlwork1:~/test-gw# kubectl apply -f 3-gateway.yaml
+gateway.gateway.networking.k8s.io/test-gateway configured
+root@mo066devlwork1:~/test-gw# kubectl get svc -n test-gw
+NAME                          TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+cilium-gateway-test-gateway   LoadBalancer   10.107.155.231   <pending>     80:30945/TCP   13m
+echo                          ClusterIP      10.96.77.246     <none>        80/TCP         5h22m
+root@mo066devlwork1:~/test-gw# curl http://10.140.90.63:30945
+
+
+
+
+upstream connect error or disconnect/reset before headers. reset reason: connection timeoutroot@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw# curl http://10.140.90.62:30945
+
+
+
+
+upstream connect error or disconnect/reset before headers. reset reason: connection timeoutroot@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw# curl http://10.140.90.64:30945
+
+
+
+upstream connect error or disconnect/reset before headers. reset reason: connection timeoutroot@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw# curl http://10.140.90.65:30945
+
+
+
+upstream connect error or disconnect/reset before headers. reset reason: connection timeoutroot@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw# kubectl get svc -n test-gw cilium-gateway-test-gateway -o yaml | grep externalTrafficPolicy
+  externalTrafficPolicy: Cluster
+root@mo066devlwork1:~/test-gw#

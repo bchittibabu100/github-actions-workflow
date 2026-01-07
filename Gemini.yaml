@@ -1,68 +1,57 @@
-root@mo066devlwork1:~# kubectl get gatewayclass
-NAME     CONTROLLER                     ACCEPTED   AGE
-cilium   io.cilium/gateway-controller   True       6d7h
-root@mo066devlwork1:~# kubectl get gatewayclassconfig
-error: the server doesn't have a resource type "gatewayclassconfig"
-root@mo066devlwork1:~# kubectl get gatewayclassconfig -n test-gw
-error: the server doesn't have a resource type "gatewayclassconfig"
-root@mo066devlwork1:~# kubectl describe gatewayclass cilium
-Name:         cilium
-Namespace:
-Labels:       app.kubernetes.io/managed-by=Helm
-Annotations:  meta.helm.sh/release-name: cilium
-              meta.helm.sh/release-namespace: kube-system
-API Version:  gateway.networking.k8s.io/v1
-Kind:         GatewayClass
-Metadata:
-  Creation Timestamp:  2025-12-31T17:46:24Z
-  Generation:          1
-  Resource Version:    2433654
-  UID:                 6f48c2b7-d182-4d5e-ae87-677e16c4a07d
-Spec:
-  Controller Name:  io.cilium/gateway-controller
-  Description:      Cilium Gateway API implementation
-Status:
-  Conditions:
-    Last Transition Time:  2025-12-31T17:46:42Z
-    Message:               Valid GatewayClass
-    Observed Generation:   1
-    Reason:                Accepted
-    Status:                True
-    Type:                  Accepted
-  Supported Features:
-    Name:  GRPCRoute
-    Name:  Gateway
-    Name:  GatewayAddressEmpty
-    Name:  GatewayHTTPListenerIsolation
-    Name:  GatewayInfrastructurePropagation
-    Name:  GatewayPort8080
-    Name:  GatewayStaticAddresses
-    Name:  HTTPRoute
-    Name:  HTTPRouteBackendProtocolH2C
-    Name:  HTTPRouteBackendProtocolWebSocket
-    Name:  HTTPRouteBackendRequestHeaderModification
-    Name:  HTTPRouteBackendTimeout
-    Name:  HTTPRouteDestinationPortMatching
-    Name:  HTTPRouteHostRewrite
-    Name:  HTTPRouteMethodMatching
-    Name:  HTTPRoutePathRedirect
-    Name:  HTTPRoutePathRewrite
-    Name:  HTTPRoutePortRedirect
-    Name:  HTTPRouteQueryParamMatching
-    Name:  HTTPRouteRequestMirror
-    Name:  HTTPRouteRequestMultipleMirrors
-    Name:  HTTPRouteRequestPercentageMirror
-    Name:  HTTPRouteRequestTimeout
-    Name:  HTTPRouteResponseHeaderModification
-    Name:  HTTPRouteSchemeRedirect
-    Name:  Mesh
-    Name:  MeshClusterIPMatching
-    Name:  MeshHTTPRouteBackendRequestHeaderModification
-    Name:  MeshHTTPRouteQueryParamMatching
-    Name:  MeshHTTPRouteRedirectPath
-    Name:  MeshHTTPRouteRedirectPort
-    Name:  MeshHTTPRouteRewritePath
-    Name:  MeshHTTPRouteSchemeRedirect
-    Name:  ReferenceGrant
-    Name:  TLSRoute
-Events:    <none>
+root@mo066devlwork1:~/test-gw# kubectl get svc -n test-gw
+NAME                          TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+cilium-gateway-test-gateway   LoadBalancer   10.111.117.64   <pending>     80:30561/TCP   4h27m
+echo                          ClusterIP      10.96.77.246    <none>        80/TCP         4h59m
+root@mo066devlwork1:~/test-gw# kubectl get svc -n test-gw echo -o yaml > 2-service.yaml
+root@mo066devlwork1:~/test-gw# vim 2-service.yaml
+root@mo066devlwork1:~/test-gw# kubectl apply -f 4-gw-service.yaml
+Warning: resource services/cilium-gateway-test-gateway is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+service/cilium-gateway-test-gateway configured
+root@mo066devlwork1:~/test-gw# kubectl get svc -n test-gw
+NAME                          TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+cilium-gateway-test-gateway   LoadBalancer   10.111.117.64   <pending>     80:30561/TCP   4h29m
+echo                          ClusterIP      10.96.77.246    <none>        80/TCP         5h1m
+root@mo066devlwork1:~/test-gw# kubectl get po -n test-gw
+NAME                    READY   STATUS    RESTARTS   AGE
+echo-7556b6d69c-6jzqz   1/1     Running   0          5h2m
+echo-7556b6d69c-7sfv4   1/1     Running   0          5h2m
+root@mo066devlwork1:~/test-gw# curl http://10.140.90.63:30561
+upstream connect error or disconnect/reset before headers. reset reason: connection timeoutroot@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw#
+root@mo066devlwork1:~/test-gw# cat 4-gw-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: cilium-gateway-test-gateway
+  namespace: test-gw
+spec:
+  type: NodePort
+  selector:
+    k8s-app: cilium
+  ports:
+  - port: 80
+    nodePort: 30561
+root@mo066devlwork1:~/test-gw# cat 3-gateway.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: test-gateway
+  namespace: test-gw
+spec:
+  gatewayClassName: cilium
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+    allowedRoutes:
+      namespaces:
+        from: Same
+  addresses:
+    - type: IPAddress
+      value: 10.140.90.62
+    - type: IPAddress
+      value: 10.140.90.63
+    - type: IPAddress
+      value: 10.140.90.64
+    - type: IPAddress
+      value: 10.140.90.65

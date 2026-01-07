@@ -1,68 +1,20 @@
-root@mo066devlwork1:~/test-gw# kubectl get httproute -n test-gw
-NAME         HOSTNAMES   AGE
-echo-route               2m54s
-root@mo066devlwork1:~/test-gw# kubectl describe httproute echo-route -n test-gw
-Name:         echo-route
-Namespace:    test-gw
-Labels:       <none>
-Annotations:  <none>
-API Version:  gateway.networking.k8s.io/v1
-Kind:         HTTPRoute
-Metadata:
-  Creation Timestamp:  2026-01-06T21:49:41Z
-  Generation:          1
-  Resource Version:    3538454
-  UID:                 b6de1a6d-ac0d-4fb3-b66e-07b19a390acf
-Spec:
-  Parent Refs:
-    Group:  gateway.networking.k8s.io
-    Kind:   Gateway
-    Name:   test-gateway
-  Rules:
-    Backend Refs:
-      Group:
-      Kind:    Service
-      Name:    echo
-      Port:    80
-      Weight:  1
-    Matches:
-      Path:
-        Type:   PathPrefix
-        Value:  /
-Status:
-  Parents:
-    Conditions:
-      Last Transition Time:  2026-01-06T21:49:41Z
-      Message:               Accepted HTTPRoute
-      Observed Generation:   1
-      Reason:                Accepted
-      Status:                True
-      Type:                  Accepted
-      Last Transition Time:  2026-01-06T21:49:41Z
-      Message:               Service reference is valid
-      Observed Generation:   1
-      Reason:                ResolvedRefs
-      Status:                True
-      Type:                  ResolvedRefs
-    Controller Name:         io.cilium/gateway-controller
-    Parent Ref:
-      Group:  gateway.networking.k8s.io
-      Kind:   Gateway
-      Name:   test-gateway
-Events:       <none>
-root@mo066devlwork1:~/test-gw# curl http://mo066devlwork2.vpayusa.net:30561
-upstream connect error or disconnect/reset before headers. reset reason: connection timeoutroot@mo066devlwork1:~/test-gw#
-root@mo066devlwork1:~/test-gw# kubectl get svc -n test-gw
+root@mo066devlwork1:~# kubectl get po -n test-gw -o wide
+NAME                    READY   STATUS    RESTARTS   AGE     IP          NODE                         NOMINATED NODE   READINESS GATES
+echo-7556b6d69c-6jzqz   1/1     Running   0          3h49m   10.0.1.95   mo066devlwork2.vpayusa.net   <none>           <none>
+echo-7556b6d69c-7sfv4   1/1     Running   0          3h49m   10.0.3.32   mo066devlwork4.vpayusa.net   <none>           <none>
+root@mo066devlwork1:~#
+root@mo066devlwork1:~# kubectl get endpoints -n test-gw
+NAME                          ENDPOINTS                   AGE
+cilium-gateway-test-gateway   192.192.192.192:9999        3h25m
+echo                          10.0.1.95:80,10.0.3.32:80   3h57m
+root@mo066devlwork1:~# kubectl get svc -n test-gw
 NAME                          TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-cilium-gateway-test-gateway   LoadBalancer   10.111.117.64   <pending>     80:30561/TCP   11m
-echo                          ClusterIP      10.96.77.246    <none>        80/TCP         43m
-root@mo066devlwork1:~/test-gw# kubectl get nodes -o wide
-NAME                         STATUS   ROLES           AGE   VERSION    INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
-mo066devlwork1.vpayusa.net   Ready    control-plane   19d   v1.29.15   10.140.90.62   <none>        Ubuntu 24.04.3 LTS   6.8.0-90-generic   containerd://1.7.28
-mo066devlwork2.vpayusa.net   Ready    <none>          18d   v1.29.15   10.140.90.63   <none>        Ubuntu 24.04.3 LTS   6.8.0-90-generic   containerd://1.7.28
-mo066devlwork3.vpayusa.net   Ready    <none>          18d   v1.29.15   10.140.90.64   <none>        Ubuntu 24.04.3 LTS   6.8.0-90-generic   containerd://1.7.28
-mo066devlwork4.vpayusa.net   Ready    <none>          18d   v1.29.15   10.140.90.65   <none>        Ubuntu 24.04.3 LTS   6.8.0-63-generic   containerd://1.7.28
-root@mo066devlwork1:~/test-gw# curl http://10.140.90.63:30561
-
-
-upstream connect error or disconnect/reset before headers. reset reason: connection timeoutroot@mo066devlwork1:~/test-gw#
+cilium-gateway-test-gateway   LoadBalancer   10.111.117.64   <pending>     80:30561/TCP   3h26m
+echo                          ClusterIP      10.96.77.246    <none>        80/TCP         3h57m
+root@mo066devlwork1:~# kubectl get svc -n test-gw cilium-gateway-test-gateway -o yaml | grep externalTrafficPolicy
+  externalTrafficPolicy: Cluster
+root@mo066devlwork1:~#
+root@mo066devlwork1:~# kubectl get ds -n kube-system
+NAME           DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+cilium         4         4         4       4            4           kubernetes.io/os=linux   18d
+cilium-envoy   4         4         4       4            4           kubernetes.io/os=linux   4d7h

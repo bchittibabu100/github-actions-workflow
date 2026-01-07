@@ -1,82 +1,56 @@
-root@mo066devlwork1:~# helm upgrade cilium ./cilium-1.18.5.tgz --namespace kube-system --reuse-values --set routingMode=native --set tunnelProtocol="" --set autoDirectNodeRoutes=true
-Release "cilium" has been upgraded. Happy Helming!
-NAME: cilium
-LAST DEPLOYED: Tue Jan  6 20:41:37 2026
-NAMESPACE: kube-system
-STATUS: deployed
-REVISION: 9
-TEST SUITE: None
-NOTES:
-You have successfully installed Cilium with Hubble Relay and Hubble UI.
+root@mo066devlwork1:~# kubectl -n kube-system exec ds/cilium -- cilium hubble status
+unknown command "hubble" for "cilium-dbg"
+Error: unknown command "hubble" for "cilium-dbg"
+Run 'cilium-dbg --help' for usage.
+command terminated with exit code 1
+root@mo066devlwork1:~# kubectl -n kube-system exec ds/cilium -- cilium --help
+CLI for interacting with the local Cilium Agent
 
-Your release version is 1.18.5.
+Usage:
+  cilium-dbg [command]
 
-For any further help, visit https://docs.cilium.io/en/v1.18/gettinghelp
-root@mo066devlwork1:~# helm get values -n kube-system cilium
-USER-SUPPLIED VALUES:
-autoDirectNodeRoutes: true
-envoy:
-  enabled: true
-externalEnvoyProxy: false
-gatewayAPI:
-  enabled: true
-hubble:
-  enabled: true
-  relay:
-    enabled: true
-  ui:
-    enabled: true
-image:
-  repository: quay.io/cilium/cilium
-  tag: v1.18.5
-ipam:
-  mode: cluster-pool
-kubeProxyReplacement: true
-operator:
-  image:
-    repository: quay.io/cilium/operator
-    tag: v1.18.5
-routingMode: native
-tunnelProtocol: ""
-root@mo066devlwork1:~# kubectl -n kube-system rollout restart ds/cilium
-daemonset.apps/cilium restarted
-root@mo066devlwork1:~# kubectl -n kube-system rollout restart deploy/cilium-opertor
-Error from server (NotFound): deployments.apps "cilium-opertor" not found
-root@mo066devlwork1:~# kubectl -n kube-system rollout restart deploy/cilium-operator
-deployment.apps/cilium-operator restarted
-root@mo066devlwork1:~# kubectl get po -n kube-system
-NAME                                                 READY   STATUS             RESTARTS           AGE
-cilium-2mgmj                                         1/1     Running            0                  46s
-cilium-dmk8q                                         1/1     Running            0                  46s
-cilium-dpvmb                                         1/1     Running            0                  34s
-cilium-envoy-284zl                                   1/1     Running            0                  4d9h
-cilium-envoy-bsn5w                                   1/1     Running            0                  4d9h
-cilium-envoy-kkvq2                                   1/1     Running            0                  4d9h
-cilium-envoy-xgt6c                                   1/1     Running            0                  4d9h
-cilium-gtsbf                                         1/1     Running            0                  36s
-cilium-operator-66566d4988-89mvj                     1/1     Running            0                  21s
-cilium-operator-66566d4988-ttp8h                     1/1     Running            0                  21s
-coredns-768b8f4548-cr956                             1/1     Running            0                  18d
-coredns-768b8f4548-nrkc5                             1/1     Running            0                  18d
-dns-test-new2                                        0/1     Completed          0                  18d
-etcd-mo066devlwork1.vpayusa.net                      1/1     Running            0                  19d
-hubble-relay-6f997576f8-nlfnn                        0/1     CrashLoopBackOff   335 (4m53s ago)    6d9h
-hubble-ui-6788c6c48d-kcs6d                           1/2     CrashLoopBackOff   1805 (3m13s ago)   6d9h
-kube-apiserver-mo066devlwork1.vpayusa.net            1/1     Running            3 (4d9h ago)       19d
-kube-controller-manager-mo066devlwork1.vpayusa.net   1/1     Running            7 (4d9h ago)       19d
-kube-scheduler-mo066devlwork1.vpayusa.net            1/1     Running            6 (4d9h ago)       19d
-root@mo066devlwork1:~# kubectl exec -n kube-system cilium-2mgmj ds/cilium -- cilium status | grep Routing
-KubeProxyReplacement:    True   [ens192  10.140.90.65 (Direct Routing)]
-Routing:                 Network: Native   Host: BPF
-root@mo066devlwork1:~# curl http://10.140.90.65:30945
-{"host":{"hostname":"10.140.90.65","ip":"10.0.0.153","ips":[]},"http":{"method":"GET","baseUrl":"","originalUrl":"/","protocol":"http"},"request":{"params":{"0":"/"},"query":{},"cookies":{},"body":{},"headers":{"host":"10.140.90.65:30945","user-agent":"curl/8.5.0","accept":"*/*","x-forwarded-for":"10.140.90.62","x-forwarded-proto":"http","x-envoy-internal":"true","x-request-id":"015a833b-9608-4518-a089-afe3197010e3"}},"environment":{"PATH":"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","HOSTNAME":"echo-7556b6d69c-7sfv4","NODE_VERSION":"20.11.0","YARN_VERSION":"1.22.19","KUBERNETES_PORT_443_TCP_PORT":"443","KUBERNETES_PORT_443_TCP_ADDR":"10.96.0.1","KUBERNETES_SERVICE_HOST":"10.96.0.1","KUBERNETES_SERVICE_PORT":"443","KUBERNETES_SERVICE_PORT_HTTPS":"443","KUBERNETES_PORT":"tcp://10.96.0.1:443","KUBERNETES_PORT_443_TCP":"tcp://10.96.0.1:443","KUBERNETES_PORT_443_TCP_PROTO":"tcp","HOME":"/root"}}root@mo066devlwork1:~#
-root@mo066devlwork1:~#
-root@mo066devlwork1:~#
-root@mo066devlwork1:~# curl http://10.140.90.62:30945
-{"host":{"hostname":"10.140.90.62","ip":"10.0.0.153","ips":[]},"http":{"method":"GET","baseUrl":"","originalUrl":"/","protocol":"http"},"request":{"params":{"0":"/"},"query":{},"cookies":{},"body":{},"headers":{"host":"10.140.90.62:30945","user-agent":"curl/8.5.0","accept":"*/*","x-forwarded-for":"10.140.90.62","x-forwarded-proto":"http","x-envoy-internal":"true","x-request-id":"f6990f79-2f91-491b-9c93-7bf26f08fefe"}},"environment":{"PATH":"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","HOSTNAME":"echo-7556b6d69c-6jzqz","NODE_VERSION":"20.11.0","YARN_VERSION":"1.22.19","KUBERNETES_PORT_443_TCP":"tcp://10.96.0.1:443","KUBERNETES_PORT_443_TCP_PROTO":"tcp","KUBERNETES_PORT_443_TCP_PORT":"443","KUBERNETES_PORT_443_TCP_ADDR":"10.96.0.1","KUBERNETES_SERVICE_HOST":"10.96.0.1","KUBERNETES_SERVICE_PORT":"443","KUBERNETES_SERVICE_PORT_HTTPS":"443","KUBERNETES_PORT":"tcp://10.96.0.1:443","HOME":"/root"}}root@mo066devlwork1:~#
-root@mo066devlwork1:~#
-root@mo066devlwork1:~# curl http://10.140.90.63:30945
-{"host":{"hostname":"10.140.90.63","ip":"10.0.0.153","ips":[]},"http":{"method":"GET","baseUrl":"","originalUrl":"/","protocol":"http"},"request":{"params":{"0":"/"},"query":{},"cookies":{},"body":{},"headers":{"host":"10.140.90.63:30945","user-agent":"curl/8.5.0","accept":"*/*","x-forwarded-for":"10.140.90.62","x-forwarded-proto":"http","x-envoy-internal":"true","x-request-id":"32572068-6542-4549-8d3d-4a15b850233e"}},"environment":{"PATH":"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","HOSTNAME":"echo-7556b6d69c-7sfv4","NODE_VERSION":"20.11.0","YARN_VERSION":"1.22.19","KUBERNETES_PORT_443_TCP_PORT":"443","KUBERNETES_PORT_443_TCP_ADDR":"10.96.0.1","KUBERNETES_SERVICE_HOST":"10.96.0.1","KUBERNETES_SERVICE_PORT":"443","KUBERNETES_SERVICE_PORT_HTTPS":"443","KUBERNETES_PORT":"tcp://10.96.0.1:443","KUBERNETES_PORT_443_TCP":"tcp://10.96.0.1:443","KUBERNETES_PORT_443_TCP_PROTO":"tcp","HOME":"/root"}}root@mo066devlwork1:~#
-root@mo066devlwork1:~#
-root@mo066devlwork1:~# curl http://10.140.90.64:30945
-{"host":{"hostname":"10.140.90.64","ip":"10.0.0.153","ips":[]},"http":{"method":"GET","baseUrl":"","originalUrl":"/","protocol":"http"},"request":{"params":{"0":"/"},"query":{},"cookies":{},"body":{},"headers":{"host":"10.140.90.64:30945","user-agent":"curl/8.5.0","accept":"*/*","x-forwarded-for":"10.140.90.62","x-forwarded-proto":"http","x-envoy-internal":"true","x-request-id":"32f334ae-bf64-4d5e-aed9-a5cce64aa1a0"}},"environment":{"PATH":"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","HOSTNAME":"echo-7556b6d69c-6jzqz","NODE_VERSION":"20.11.0","YARN_VERSION":"1.22.19","KUBERNETES_PORT_443_TCP":"tcp://10.96.0.1:443","KUBERNETES_PORT_443_TCP_PROTO":"tcp","KUBERNETES_PORT_443_TCP_PORT":"443","KUBERNETES_PORT_443_TCP_ADDR":"10.96.0.1","KUBERNETES_SERVICE_HOST":"10.96.0.1","KUBERNETES_SERVICE_PORT":"443","KUBERNETES_SERVICE_PORT_HTTPS":"443","KUBERNETES_PORT":"tcp://10.96.0.1:443","HOME":"/root"}}root@mo066devlwork1:~#
+Available Commands:
+  bgp                    Access to BGP control plane
+  bpf                    Direct access to local BPF maps
+  build-config           Resolve all of the configuration sources that apply to this node
+  cgroups                Cgroup metadata
+  completion             Output shell completion code
+  config                 Cilium configuration options
+  debuginfo              Request available debugging information from agent
+  encrypt                Manage transparent encryption
+  endpoint               Manage endpoints
+  envoy                  Manage Envoy Proxy
+  fqdn                   Manage fqdn proxy
+  help                   Help about any command
+  identity               Manage security identities
+  ip                     Manage IP addresses and associated information
+  kvstore                Direct access to the kvstore
+  loadinfo               Show load information
+  lrp                    Manage local redirect policies
+  map                    Access userspace cached content of BPF maps
+  metrics                Access metric status
+  monitor                Display BPF program events
+  node                   Manage cluster nodes
+  nodeid                 List node IDs and associated information
+  policy                 Manage security policies
+  post-uninstall-cleanup Remove system state installed by Cilium at runtime
+  prefilter              Manage XDP CIDR filters
+  preflight              Cilium upgrade helper
+  recorder               Introspect or mangle pcap recorder
+  service                List services & loadbalancers
+  shell                  Connect to the Cilium shell
+  statedb                Inspect StateDB (deprecated)
+  status                 Display status of daemon
+  sysdump                Provide instructions on dumping cluster-wide system state
+  troubleshoot           Run troubleshooting utilities to check control-plane connectivity
+  version                Print version information
+
+Flags:
+      --config string        Config file (default is $HOME/.cilium.yaml)
+  -D, --debug                Enable debug messages
+  -h, --help                 help for cilium-dbg
+  -H, --host string          URI to server-side API
+      --log-driver strings   Logging endpoints to use (example: syslog)
+      --log-opt map          Log driver options (example: format=json)
+
+Use "cilium-dbg [command] --help" for more information about a command.

@@ -1,20 +1,52 @@
+root@mo066devlwork1:~# helm upgrade cilium ./cilium-1.18.5.tgz --namespace kube-system --reuse-values --set gatewayAPI.enabled=true
+Release "cilium" has been upgraded. Happy Helming!
+NAME: cilium
+LAST DEPLOYED: Tue Jan  6 19:21:44 2026
+NAMESPACE: kube-system
+STATUS: deployed
+REVISION: 8
+TEST SUITE: None
+NOTES:
+You have successfully installed Cilium with Hubble Relay and Hubble UI.
+
+Your release version is 1.18.5.
+
+For any further help, visit https://docs.cilium.io/en/v1.18/gettinghelp
+root@mo066devlwork1:~# helm list -n kube-system
+NAME  	NAMESPACE  	REVISION	UPDATED                                	STATUS  	CHART        	APP VERSION
+cilium	kube-system	8       	2026-01-06 19:21:44.348535899 -0600 CST	deployed	cilium-1.18.5	1.18.5
+root@mo066devlwork1:~# helm get values -n kube-system cilium
+USER-SUPPLIED VALUES:
+envoy:
+  enabled: true
+externalEnvoyProxy: false
+gatewayAPI:
+  enabled: true
+hubble:
+  enabled: true
+  relay:
+    enabled: true
+  ui:
+    enabled: true
+image:
+  repository: quay.io/cilium/cilium
+  tag: v1.18.5
+ipam:
+  mode: cluster-pool
+kubeProxyReplacement: true
+operator:
+  image:
+    repository: quay.io/cilium/operator
+    tag: v1.18.5
+routingMode: tunnel
+tunnelProtocol: vxlan
+root@mo066devlwork1:~# kubectl -n kube-system rollout restart deploy/cilium-operator
+deployment.apps/cilium-operator restarted
+root@mo066devlwork1:~# kubectl -n kube-system rollout restart ds/cilium
+daemonset.apps/cilium restarted
 root@mo066devlwork1:~# kubectl get po -n test-gw -o wide
 NAME                    READY   STATUS    RESTARTS   AGE     IP          NODE                         NOMINATED NODE   READINESS GATES
-echo-7556b6d69c-6jzqz   1/1     Running   0          3h49m   10.0.1.95   mo066devlwork2.vpayusa.net   <none>           <none>
-echo-7556b6d69c-7sfv4   1/1     Running   0          3h49m   10.0.3.32   mo066devlwork4.vpayusa.net   <none>           <none>
-root@mo066devlwork1:~#
-root@mo066devlwork1:~# kubectl get endpoints -n test-gw
-NAME                          ENDPOINTS                   AGE
-cilium-gateway-test-gateway   192.192.192.192:9999        3h25m
-echo                          10.0.1.95:80,10.0.3.32:80   3h57m
-root@mo066devlwork1:~# kubectl get svc -n test-gw
-NAME                          TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-cilium-gateway-test-gateway   LoadBalancer   10.111.117.64   <pending>     80:30561/TCP   3h26m
-echo                          ClusterIP      10.96.77.246    <none>        80/TCP         3h57m
+echo-7556b6d69c-6jzqz   1/1     Running   0          4h14m   10.0.1.95   mo066devlwork2.vpayusa.net   <none>           <none>
+echo-7556b6d69c-7sfv4   1/1     Running   0          4h14m   10.0.3.32   mo066devlwork4.vpayusa.net   <none>           <none>
 root@mo066devlwork1:~# kubectl get svc -n test-gw cilium-gateway-test-gateway -o yaml | grep externalTrafficPolicy
   externalTrafficPolicy: Cluster
-root@mo066devlwork1:~#
-root@mo066devlwork1:~# kubectl get ds -n kube-system
-NAME           DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
-cilium         4         4         4       4            4           kubernetes.io/os=linux   18d
-cilium-envoy   4         4         4       4            4           kubernetes.io/os=linux   4d7h

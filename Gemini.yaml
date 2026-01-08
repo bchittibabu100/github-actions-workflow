@@ -1,19 +1,25 @@
-root@mo066devlwork1:~# kubectl -n kube-system port-forward svc/hubble-relay 4245:80
-Forwarding from 127.0.0.1:4245 -> 4245
-Handling connection for 4245
-Handling connection for 4245
-Handling connection for 4245
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: echo-hpa
+  namespace: test-gw
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: echo
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
 
-hubble observe --protocol HTTP -f
 
-curl http://10.140.90.63:30945
+while true; do curl -s http://<LB-IP> > /dev/null; done
 
-hubble observe logs:
-Jan  7 05:27:28.800: 127.0.0.1:56996 (ingress) -> test-gw/echo-7556b6d69c-6jzqz:80 (ID:4928) http-request FORWARDED (HTTP/1.1 GET http://10.140.90.63:30945/)
-Jan  7 05:27:28.804: 127.0.0.1:56996 (ingress) <- test-gw/echo-7556b6d69c-6jzqz:80 (ID:4928) http-response FORWARDED (HTTP/1.1 200 4ms (GET http://10.140.90.63:30945/))
 
-Jan  7 05:28:56.043: 127.0.0.1:59994 (ingress) -> test-gw/echo-7556b6d69c-7sfv4:80 (ID:4928) http-request FORWARDED (HTTP/1.1 GET http://10.140.90.63:30945/)
-Jan  7 05:28:56.048: 127.0.0.1:59994 (ingress) <- test-gw/echo-7556b6d69c-7sfv4:80 (ID:4928) http-response FORWARDED (HTTP/1.1 200 5ms (GET http://10.140.90.63:30945/))
 
-Jan  7 05:29:54.982: 172.21.89.9:52042 (ingress) -> test-gw/echo-7556b6d69c-7sfv4:80 (ID:4928) http-request FORWARDED (HTTP/1.1 GET http://10.140.90.63:30945/)
-Jan  7 05:29:54.985: 172.21.89.9:52042 (ingress) <- test-gw/echo-7556b6d69c-7sfv4:80 (ID:4928) http-response FORWARDED (HTTP/1.1 200 5ms (GET http://10.140.90.63:30945/))

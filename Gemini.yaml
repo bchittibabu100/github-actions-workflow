@@ -1,25 +1,101 @@
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
+apiVersion: v1
+kind: Secret
 metadata:
-  name: echo-hpa
-  namespace: test-gw
+  name: vsphere-cloud-secret
+  namespace: kube-system
+stringData:
+  username: "administrator@vsphere.local"
+  password: "********"
+
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vsphere-cloud-config
+  namespace: kube-system
+data:
+  vsphere.conf: |
+    global:
+      insecureFlag: true
+      secretName: vsphere-cloud-secret
+      secretNamespace: kube-system
+
+    vcenter:
+      vcsa.example.com:
+        datacenters:
+        - DC1
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cluster-autoscaler
+  namespace: kube-system
 spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: echo
-  minReplicas: 1
-  maxReplicas: 5
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 50
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cluster-autoscaler
+  template:
+    metadata:
+      labels:
+        app: cluster-autoscaler
+    spec:
+      serviceAccountName: cluster-autoscaler
+      containers:
+      - image: registry.k8s.io/autoscaling/cluster-autoscaler:v1.29.2
+        name: cluster-autoscaler
+        command:
+        - ./cluster-autoscaler
+        - --cloud-provider=vsphere
+        - --v=4
+        - --stderrthreshold=info
+        - --balance-similar-node-groups
+        - --skip-nodes-with-local-storage=false
+        - --skip-nodes-with-system-pods=false
+        - --nodes=1:5:worker-small
+        - --nodes=3:10:worker-medium
+        - --nodes=0:6:worker-large
+        volumeMounts:
+        - name: cloud-config
+          mountPath: /etc/kubernetes
+          readOnly: true
+      volumes:
+      - name: cloud-config
+        configMap:
+          name: vsphere-cloud-config
 
 
-while true; do curl -s http://<LB-IP> > /dev/null; done
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cluster-autoscaler
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-autoscaler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-autoscaler
+subjects:
+- kind: ServiceAccount
+  name: cluster-autoscaler
+  namespace: kube-system
 
 
+cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
 
+kubectl run scale-test \
+  --image=busybox \
+  --requests=cpu=2,memory=2Gi \
+  --restart=Never -- sleep 3600
+
+kubectl delete pod scale-test
+
+kubectl -n kube-system logs deploy/cluster-autoscaler -f
+cluster_autoscaler_nodes_count
+cluster_autoscaler_unschedulable_pods_count
